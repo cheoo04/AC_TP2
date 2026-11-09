@@ -74,8 +74,19 @@ public class FFT_1D {
 			
 	//renvoie la transformée de Fourier inverse de y
 	public static CpxTab FFT_inverse(CpxTab y) {
-		//A FAIRE
-		return null;
+		
+		int n = y.taille();
+
+		CpxTab conjug = y.conjugue();
+		CpxTab fft_y = FFT(conjug);
+		CpxTab res = fft_y.conjugue();
+
+		for (int k = 0; k<n; k++){
+			res.set_p_reel(k, res.get_p_reel(k) / n);
+			res.set_p_imag(k, res.get_p_imag(k) / n);
+		}
+
+		return res;
 	}
 	
 	//calcule le produit de deux polynômes en utilisant la FFT
@@ -90,8 +101,12 @@ public class FFT_1D {
 			t2[i] = tab2[i];
 		}
 
-		//A COMPLETER !!
-		return null;
+		CpxTab c1 = FFT(t1);
+		CpxTab c2 = FFT(t2);
+
+		CpxTab prod = CpxTab.multiplie(c1, c2);
+
+		return FFT_inverse(prod);
 	}
 
 	
