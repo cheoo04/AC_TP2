@@ -154,27 +154,35 @@ public class FFT_1D {
 		double[] t5 = {1,2,3,4};
 
 		/* Exo 2: calculez et affichez TFD(1,2,3,4) */
-			//A FAIRE
+			CpxTab TFD_t5 = FFT(t5);
+			System.out.println(" TFD(1,2,3,4) = " + TFD_t5);
 		
 		/* Exo 3: calculez et affichez TFD_inverse(TFD(1,2,3,4)) */
-			//A FAIRE		
+			CpxTab TFD_inverse_t5 = FFT_inverse( TFD_t5);
+			System.out.println(" TFD_inverse(TFD(1,2,3,4)) = " + TFD_inverse_t5);		
 
 		/* Exo 4: multiplication polynomiale, vérification*/
 			/* A(X) = 2 et B(X)=-3 */
-			//A FAIRE		
+			double[] t1 = {2};
+			double[] t2 = {-3};
+			CpxTab mult1 = multiplication_polynome_viaFFT(t1, t2); 
+			System.out.println("La multiplication polynomiale de A(X) = 2 et B(X)=-3 est : C(X)= " + mult1);
+
 
 			/* A(X) = 2+X et B(X)= -3+2X */
-			//A FAIRE					
+			double[] t3 = {2, 1};
+			double[] t4 = {-3, 2};
+			CpxTab mult2 = multiplication_polynome_viaFFT(t3, t4); 
+			System.out.println("La multiplication polynomiale de A(X) = 2+X et B(X)= -3+2X est : C(X)= " + mult2);
+					
 
 			/* A(X) = 1 + 2X + 3X^2 + 4X^3 et B(X) = -3 + 2X - 5 X^2*/
-	/*
-		System.out.println("-----------------------------------------------------");
-		System.out.println("   Comparaison des 2 méthodes de multiplications polynomiales");
-		double[] t6 = {-3,2,-5,0};
-		System.out.println("mult via FFT  --> " + multiplication_polynome_viaFFT(t5, t6));
-		System.out.print(  "mult via coeff -> ");
-		afficher(multiplication_polynome_viaCoeff(t5, t6));
-	*/
+			System.out.println("-----------------------------------------------------");
+			System.out.println("   Comparaison des 2 méthodes de multiplications polynomiales");
+			double[] t6 = {-3,2,-5,0};
+			System.out.println("mult via FFT  --> " + multiplication_polynome_viaFFT(t5, t6));
+			System.out.print(  "mult via coeff -> ");
+			afficher(multiplication_polynome_viaCoeff(t5, t6));
 
 		/* Exo 5: comparaison des temps de calculs */
 	/*
