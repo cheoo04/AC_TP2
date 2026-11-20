@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
 /**** on va ici implémenter la transformée de Fourier rapide 1D ****/
 
 public class FFT_1D {
@@ -185,23 +189,68 @@ public class FFT_1D {
 			afficher(multiplication_polynome_viaCoeff(t5, t6));
 
 		/* Exo 5: comparaison des temps de calculs */
-	/*
-		// Pour étude du temps de calcul 
-		int n = 256;  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
-			
-		System.out.println("Temps de calcul pour n="+n);
-		double[] tab1 =random(n),tab2 = random(n);
-		long date1, date2;
-		date1 = System.currentTimeMillis();
-		multiplication_polynome_viaCoeff(tab1, tab2);
-		date2 = System.currentTimeMillis();
-		System.out.println("   via Coeff: " + (date2 - date1));
+	
+		// Pour étude du temps de calcul
+		// Echauffement 
+			for (int i = 0; i < 20; i++) {
+				double[] w1 = random(1024), w2 = random(1024);
+				multiplication_polynome_viaCoeff(w1, w2);
+				multiplication_polynome_viaFFT(w1, w2);
+			}
 
-		date1 = System.currentTimeMillis();
-		multiplication_polynome_viaFFT(tab1, tab2);
-		date2 = System.currentTimeMillis();
-		System.out.println("   via FFT  : " + (date2 - date1));
-	*/
+		// Coeff
+			double a=0; 
+			List<Integer> tailles_Coeff = new ArrayList<Integer>();
+			List<Integer> temps_Coeff = new ArrayList<Integer>();
+			for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
+			
+				tailles_Coeff.add(n);
+				double[] tab1 =random(n),tab2 = random(n);
+
+				long meilleur = Long.MAX_VALUE;
+				for (int r = 0; r < 5; r++) {
+					long date1 = System.nanoTime();
+					multiplication_polynome_viaCoeff(tab1, tab2);
+					long date2 = System.nanoTime();
+					long date = (date2 - date1) / 1000;
+					meilleur = Math.min(meilleur, date);
+				}
+				temps_Coeff.add((int) meilleur);
+
+			}
+			System.out.println("   via Coeff: " + temps_Coeff);
+			
+
+			Graph g1 = new Graph(tailles_Coeff, temps_Coeff);
+			g1.display();
+			Scanner in = new Scanner(System.in);
+			in.useLocale(Locale.US);
+			a = in.nextDouble();
+			g1.addQuadratic(a);
+
+		// FFT
+			List<Integer> tailles_FFT = new ArrayList<Integer>();
+			List<Integer> temps_FFT = new ArrayList<Integer>();
+			for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
+			
+				tailles_FFT.add(n);
+				double[] tab1 =random(n),tab2 = random(n);
+				long meilleur = Long.MAX_VALUE;
+				for (int r = 0; r < 5; r++) {
+					long date1 = System.nanoTime();
+					multiplication_polynome_viaFFT(tab1, tab2);
+					long date2 = System.nanoTime();
+					long date = (date2 - date1) / 1000;
+					meilleur = Math.min(meilleur, date);
+				}
+				temps_FFT.add((int) meilleur);
+
+			}
+			System.out.println("   via FFT  : " + temps_FFT);
+			Graph g2 = new Graph(tailles_FFT, temps_FFT);
+			g2.display();
+			a = in.nextDouble();
+			g2.addnLogn(a);
 
 	}
 
