@@ -220,11 +220,28 @@ public class FFT_1D {
 			}
 			System.out.println("   via Coeff: " + temps_Coeff);
 			
+			System.out.println("n \t T(n) \t T/n^2 \t T(n)/T(n/2)");
+			for (int i = 0; i < tailles_Coeff.size(); i++) {
+				double n = tailles_Coeff.get(i);
+				double t = temps_Coeff.get(i);
+
+				double rapportModele = t / (n * n);
+
+				String rapportDouble = "-";
+				if (i > 0) {
+					double tPrecedent = temps_Coeff.get(i - 1);
+					rapportDouble = String.valueOf(t / tPrecedent);
+				}
+
+				System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
+			}
+
 
 			Graph g1 = new Graph(tailles_Coeff, temps_Coeff);
 			g1.display();
 			Scanner in = new Scanner(System.in);
 			in.useLocale(Locale.US);
+			System.out.print("a = ");
 			a = in.nextDouble();
 			g1.addQuadratic(a);
 
@@ -247,10 +264,29 @@ public class FFT_1D {
 
 			}
 			System.out.println("   via FFT  : " + temps_FFT);
+
+			System.out.println("n \t T(n) \t T/nln(n) \t T(n)/T(n/2)");
+			for (int i = 0; i < tailles_FFT.size(); i++) {
+				double n = tailles_FFT.get(i);
+				double t = temps_FFT.get(i);
+
+				double rapportModele = t / (n * Math.log(n));
+
+				String rapportDouble = "-";
+				if (i > 0) {
+					double tPrecedent = temps_FFT.get(i - 1);
+					rapportDouble = String.valueOf(t / tPrecedent);
+				}
+
+				System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
+			}
+
 			Graph g2 = new Graph(tailles_FFT, temps_FFT);
 			g2.display();
+			System.out.print("a = ");
 			a = in.nextDouble();
 			g2.addnLogn(a);
+			in.close();
 
 	}
 
