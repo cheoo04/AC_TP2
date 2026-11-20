@@ -1,3 +1,9 @@
 *.pdf
+!CR_TP2_partie1.pdf
 *.class
 *.pgm
+AC_tp2_part2_donnees
+*.toc
+*.log
+*.aux
+*.out
