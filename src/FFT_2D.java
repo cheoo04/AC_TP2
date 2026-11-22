@@ -90,25 +90,26 @@ public class FFT_2D {
 		try {			
 			//PLACEZ ICI VOS TESTS en 2D
 			//Exemple, lecture
-			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/mire1.pgm");
+			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/barbara_512.pgm");
 			CpxImg I = new CpxImg(BP);
 			CpxImg TFD_I = FFT(I);
+			// CpxImg TFD_inverse_I = FFT_inverse(TFD_I);
 			CpxImg TFD_trans_I = transformeCpxImg(TFD_I);
 
-			double erreurMax = 0.0;
-			for (int k = 0; k < I.taille(); k++) {
-				for (int l = 0; l < I.taille(); l++) {
-					double diff = Math.abs(I.get_p_reel(k, l) - TFD_trans_I.get_p_reel(k, l));
-					if (diff > erreurMax) {
-						erreurMax = diff;
-					}
-				}
-			}
-			System.out.println("Erreur maximale de reconstruction : " + erreurMax);
+			// double erreurMax = 0.0;
+			// for (int k = 0; k < I.taille(); k++) {
+			// 	for (int l = 0; l < I.taille(); l++) {
+			// 		double diff = Math.abs(I.get_p_reel(k, l) - TFD_inverse_I.get_p_reel(k, l));
+			// 		if (diff > erreurMax) {
+			// 			erreurMax = diff;
+			// 		}
+			// 	}
+			// }
+			// System.out.println("Erreur maximale de reconstruction : " + erreurMax);
 			
 			//Exemple, écriture
 			BP = TFD_trans_I.convert_to_BytePixmap();
-			BP.write("resultats/res_mire1.pgm");
+			BP.write("resultats/res_barbara_512.pgm");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
