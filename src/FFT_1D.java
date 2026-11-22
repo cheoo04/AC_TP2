@@ -155,138 +155,144 @@ public class FFT_1D {
 	}
 	
 	public static void main(String[] args) {
-		double[] t5 = {1,2,3,4};
+		// double[] t5 = {1,2,3,4};
 
-		/* Exo 2: calculez et affichez TFD(1,2,3,4) */
-			CpxTab TFD_t5 = FFT(t5);
-			System.out.println(" TFD(1,2,3,4) = " + TFD_t5);
+		// /* Exo 2: calculez et affichez TFD(1,2,3,4) */
+		// 	CpxTab TFD_t5 = FFT(t5);
+		// 	System.out.println(" TFD(1,2,3,4) = " + TFD_t5);
 		
-		/* Exo 3: calculez et affichez TFD_inverse(TFD(1,2,3,4)) */
-			CpxTab TFD_inverse_t5 = FFT_inverse( TFD_t5);
-			System.out.println(" TFD_inverse(TFD(1,2,3,4)) = " + TFD_inverse_t5);		
+		// /* Exo 3: calculez et affichez TFD_inverse(TFD(1,2,3,4)) */
+		// 	CpxTab TFD_inverse_t5 = FFT_inverse( TFD_t5);
+		// 	System.out.println(" TFD_inverse(TFD(1,2,3,4)) = " + TFD_inverse_t5);		
 
-		/* Exo 4: multiplication polynomiale, vérification*/
-			/* A(X) = 2 et B(X)=-3 */
-			double[] t1 = {2};
-			double[] t2 = {-3};
-			CpxTab mult1 = multiplication_polynome_viaFFT(t1, t2); 
-			System.out.println("La multiplication polynomiale de A(X) = 2 et B(X)=-3 est : C(X)= " + mult1);
+		// /* Exo 4: multiplication polynomiale, vérification*/
+		// 	/* A(X) = 2 et B(X)=-3 */
+		// 	double[] t1 = {2};
+		// 	double[] t2 = {-3};
+		// 	CpxTab mult1 = multiplication_polynome_viaFFT(t1, t2); 
+		// 	System.out.println("La multiplication polynomiale de A(X) = 2 et B(X)=-3 est : C(X)= " + mult1);
 
 
-			/* A(X) = 2+X et B(X)= -3+2X */
-			double[] t3 = {2, 1};
-			double[] t4 = {-3, 2};
-			CpxTab mult2 = multiplication_polynome_viaFFT(t3, t4); 
-			System.out.println("La multiplication polynomiale de A(X) = 2+X et B(X)= -3+2X est : C(X)= " + mult2);
+		// 	/* A(X) = 2+X et B(X)= -3+2X */
+		// 	double[] t3 = {2, 1};
+		// 	double[] t4 = {-3, 2};
+		// 	CpxTab mult2 = multiplication_polynome_viaFFT(t3, t4); 
+		// 	System.out.println("La multiplication polynomiale de A(X) = 2+X et B(X)= -3+2X est : C(X)= " + mult2);
 					
 
-			/* A(X) = 1 + 2X + 3X^2 + 4X^3 et B(X) = -3 + 2X - 5 X^2*/
-			System.out.println("-----------------------------------------------------");
-			System.out.println("   Comparaison des 2 méthodes de multiplications polynomiales");
-			double[] t6 = {-3,2,-5,0};
-			System.out.println("mult via FFT  --> " + multiplication_polynome_viaFFT(t5, t6));
-			System.out.print(  "mult via coeff -> ");
-			afficher(multiplication_polynome_viaCoeff(t5, t6));
+		// 	/* A(X) = 1 + 2X + 3X^2 + 4X^3 et B(X) = -3 + 2X - 5 X^2*/
+		// 	System.out.println("-----------------------------------------------------");
+		// 	System.out.println("   Comparaison des 2 méthodes de multiplications polynomiales");
+		// 	double[] t6 = {-3,2,-5,0};
+		// 	System.out.println("mult via FFT  --> " + multiplication_polynome_viaFFT(t5, t6));
+		// 	System.out.print(  "mult via coeff -> ");
+		// 	afficher(multiplication_polynome_viaCoeff(t5, t6));
 
-		/* Exo 5: comparaison des temps de calculs */
+		// /* Exo 5: comparaison des temps de calculs */
 	
-		// Pour étude du temps de calcul
-		// Echauffement 
-			for (int i = 0; i < 20; i++) {
-				double[] w1 = random(1024), w2 = random(1024);
-				multiplication_polynome_viaCoeff(w1, w2);
-				multiplication_polynome_viaFFT(w1, w2);
-			}
+		// // Pour étude du temps de calcul
+		// // Echauffement 
+		// 	for (int i = 0; i < 20; i++) {
+		// 		double[] w1 = random(1024), w2 = random(1024);
+		// 		multiplication_polynome_viaCoeff(w1, w2);
+		// 		multiplication_polynome_viaFFT(w1, w2);
+		// 	}
 
-		// Coeff
-			double a=0; 
-			List<Integer> tailles_Coeff = new ArrayList<Integer>();
-			List<Integer> temps_Coeff = new ArrayList<Integer>();
-			for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
+		// // Coeff
+		// 	double a=0; 
+		// 	List<Integer> tailles_Coeff = new ArrayList<Integer>();
+		// 	List<Integer> temps_Coeff = new ArrayList<Integer>();
+		// 	for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
 			
-				tailles_Coeff.add(n);
-				double[] tab1 =random(n),tab2 = random(n);
+		// 		tailles_Coeff.add(n);
+		// 		double[] tab1 =random(n),tab2 = random(n);
 
-				long meilleur = Long.MAX_VALUE;
-				for (int r = 0; r < 5; r++) {
-					long date1 = System.nanoTime();
-					multiplication_polynome_viaCoeff(tab1, tab2);
-					long date2 = System.nanoTime();
-					long date = (date2 - date1) / 1000;
-					meilleur = Math.min(meilleur, date);
-				}
-				temps_Coeff.add((int) meilleur);
+		// 		long meilleur = Long.MAX_VALUE;
+		// 		for (int r = 0; r < 5; r++) {
+		// 			long date1 = System.nanoTime();
+		// 			multiplication_polynome_viaCoeff(tab1, tab2);
+		// 			long date2 = System.nanoTime();
+		// 			long date = (date2 - date1) / 1000;
+		// 			meilleur = Math.min(meilleur, date);
+		// 		}
+		// 		temps_Coeff.add((int) meilleur);
 
-			}
-			System.out.println("   via Coeff: " + temps_Coeff);
+		// 	}
+		// 	System.out.println("   via Coeff: " + temps_Coeff);
 			
-			System.out.println("n \t T(n) \t T/n^2 \t T(n)/T(n/2)");
-			for (int i = 0; i < tailles_Coeff.size(); i++) {
-				double n = tailles_Coeff.get(i);
-				double t = temps_Coeff.get(i);
+		// 	System.out.println("n \t T(n) \t T/n^2 \t T(n)/T(n/2)");
+		// 	for (int i = 0; i < tailles_Coeff.size(); i++) {
+		// 		double n = tailles_Coeff.get(i);
+		// 		double t = temps_Coeff.get(i);
 
-				double rapportModele = t / (n * n);
+		// 		double rapportModele = t / (n * n);
 
-				String rapportDouble = "-";
-				if (i > 0) {
-					double tPrecedent = temps_Coeff.get(i - 1);
-					rapportDouble = String.valueOf(t / tPrecedent);
-				}
+		// 		String rapportDouble = "-";
+		// 		if (i > 0) {
+		// 			double tPrecedent = temps_Coeff.get(i - 1);
+		// 			rapportDouble = String.valueOf(t / tPrecedent);
+		// 		}
 
-				System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
-			}
+		// 		System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
+		// 	}
 
 
-			Graph g1 = new Graph(tailles_Coeff, temps_Coeff);
-			g1.display();
-			Scanner in = new Scanner(System.in);
-			in.useLocale(Locale.US);
-			System.out.print("a = ");
-			a = in.nextDouble();
-			g1.addQuadratic(a);
+		// 	Graph g1 = new Graph(tailles_Coeff, temps_Coeff);
+		// 	g1.display();
+		// 	Scanner in = new Scanner(System.in);
+		// 	in.useLocale(Locale.US);
+		// 	System.out.print("a = ");
+		// 	a = in.nextDouble();
+		// 	g1.addQuadratic(a);
 
-		// FFT
-			List<Integer> tailles_FFT = new ArrayList<Integer>();
-			List<Integer> temps_FFT = new ArrayList<Integer>();
-			for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
+		// // FFT
+		// 	List<Integer> tailles_FFT = new ArrayList<Integer>();
+		// 	List<Integer> temps_FFT = new ArrayList<Integer>();
+		// 	for (int n = 64; n<= 32768; n = n*2){  // taille des polynômes à multiplier (testez différentes valeurs en gardant des puissances de 2)
 			
-				tailles_FFT.add(n);
-				double[] tab1 =random(n),tab2 = random(n);
-				long meilleur = Long.MAX_VALUE;
-				for (int r = 0; r < 5; r++) {
-					long date1 = System.nanoTime();
-					multiplication_polynome_viaFFT(tab1, tab2);
-					long date2 = System.nanoTime();
-					long date = (date2 - date1) / 1000;
-					meilleur = Math.min(meilleur, date);
-				}
-				temps_FFT.add((int) meilleur);
+		// 		tailles_FFT.add(n);
+		// 		double[] tab1 =random(n),tab2 = random(n);
+		// 		long meilleur = Long.MAX_VALUE;
+		// 		for (int r = 0; r < 5; r++) {
+		// 			long date1 = System.nanoTime();
+		// 			multiplication_polynome_viaFFT(tab1, tab2);
+		// 			long date2 = System.nanoTime();
+		// 			long date = (date2 - date1) / 1000;
+		// 			meilleur = Math.min(meilleur, date);
+		// 		}
+		// 		temps_FFT.add((int) meilleur);
 
-			}
-			System.out.println("   via FFT  : " + temps_FFT);
+		// 	}
+		// 	System.out.println("   via FFT  : " + temps_FFT);
 
-			System.out.println("n \t T(n) \t T/nln(n) \t T(n)/T(n/2)");
-			for (int i = 0; i < tailles_FFT.size(); i++) {
-				double n = tailles_FFT.get(i);
-				double t = temps_FFT.get(i);
+		// 	System.out.println("n \t T(n) \t T/nln(n) \t T(n)/T(n/2)");
+		// 	for (int i = 0; i < tailles_FFT.size(); i++) {
+		// 		double n = tailles_FFT.get(i);
+		// 		double t = temps_FFT.get(i);
 
-				double rapportModele = t / (n * Math.log(n));
+		// 		double rapportModele = t / (n * Math.log(n));
 
-				String rapportDouble = "-";
-				if (i > 0) {
-					double tPrecedent = temps_FFT.get(i - 1);
-					rapportDouble = String.valueOf(t / tPrecedent);
-				}
+		// 		String rapportDouble = "-";
+		// 		if (i > 0) {
+		// 			double tPrecedent = temps_FFT.get(i - 1);
+		// 			rapportDouble = String.valueOf(t / tPrecedent);
+		// 		}
 
-				System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
-			}
+		// 		System.out.println(n + "\t" + t + "\t" + rapportModele + "\t" + rapportDouble);
+		// 	}
 
-			Graph g2 = new Graph(tailles_FFT, temps_FFT);
-			g2.display();
-			System.out.print("a = ");
-			a = in.nextDouble();
-			g2.addnLogn(a);
-			in.close();
+		// 	Graph g2 = new Graph(tailles_FFT, temps_FFT);
+		// 	g2.display();
+		// 	System.out.print("a = ");
+		// 	a = in.nextDouble();
+		// 	g2.addnLogn(a);
+		// 	in.close();
+
+		double[] a = new double[16];
+		for (int k = 0; k<16; k++){
+			a[k] = 22;
+		}
+		System.out.println("FFT(5) = " + FFT(a));
 
 	}
 
