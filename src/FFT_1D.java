@@ -291,10 +291,10 @@ public class FFT_1D {
 		// 	in.close();
 
 		int n= 16; 
-		//int k = random(16); // k est la fréquence
+		int k = new Random().nextInt(n); // k est la fréquence choisit dans {0, ..., 15}
 		double[] a = new double[n];
-		for (int j = 0; j<n; j++){
-			a[j] = Math.cos(2 * Math.PI * 1 * j / n) + 0.5 * Math.cos(2 * Math.PI * 3 * j / n);
+		for (int j = 0; j<16; j++){
+			a[j] = Math.cos(2 * Math.PI * k * j / n);
 		}
 		System.out.println("FFT(a) = " + FFT(a));
 
