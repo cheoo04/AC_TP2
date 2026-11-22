@@ -84,18 +84,46 @@ public class FFT_2D {
 		return res;
 	}
 
+	static CpxImg annuler(CpxImg I, int k, int l){
+		CpxImg TFD_I = FFT(I);
+		TFD_I.set_p_reel(k, l, 0);
+		TFD_I.set_p_imag(k, l, 0);
+		CpxImg res = FFT_inverse(TFD_I);
+
+		double erreurMax = 0.0;
+			for (int i = 0; i < I.taille(); i++) {
+				for (int j = 0; j < I.taille(); j++) {
+					double diff = Math.abs(I.get_p_reel(i, j) - res.get_p_reel(i, j));
+					if (diff > erreurMax) {
+						erreurMax = diff;
+					}
+				}
+			}
+			System.out.println("Erreur maximale de reconstruction (" + k + ", " + l + ") : " + erreurMax);
+
+		
+		return res;
+	}
+
 	
 	public static void main(String[] args) {
 		
 		try {			
 			//PLACEZ ICI VOS TESTS en 2D
-			//Exemple, lecture
-			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/barbara_512.pgm");
+			// lecture
+			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
+			BytePixmap BP2 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
+			BytePixmap BP3 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			CpxImg I = new CpxImg(BP);
-			CpxImg TFD_I = FFT(I);
-			// CpxImg TFD_inverse_I = FFT_inverse(TFD_I);
-			CpxImg TFD_trans_I = transformeCpxImg(TFD_I);
 
+			int n = I.taille();
+			CpxImg annuleCentre = annuler(I, n/2, n/2);
+			CpxImg annulProcheCentre = annuler(I, n/2 + 1, n/2);
+			CpxImg annnulHF = annuler(I, n/2 + 100, n/2);
+			// CpxImg TFD_I = FFT(I);
+			// CpxImg TFD_inverse_I = FFT_inverse(TFD_I);
+			// CpxImg TFD_trans_I = transformeCpxImg(TFD_I);
+			
 			// double erreurMax = 0.0;
 			// for (int k = 0; k < I.taille(); k++) {
 			// 	for (int l = 0; l < I.taille(); l++) {
@@ -107,9 +135,15 @@ public class FFT_2D {
 			// }
 			// System.out.println("Erreur maximale de reconstruction : " + erreurMax);
 			
-			//Exemple, écriture
-			BP = TFD_trans_I.convert_to_BytePixmap();
-			BP.write("resultats/res_barbara_512.pgm");
+			// écriture
+			// BP = TFD_trans_I.convert_to_BytePixmap();
+			// BP = TFD_inverse_I.convert_to_BytePixmap();
+			BP = annuleCentre.convert_to_BytePixmap();
+			BP2 = annulProcheCentre.convert_to_BytePixmap();
+			BP3 = annnulHF.convert_to_BytePixmap();
+			BP.write("resultats/ex4_centre.pgm");
+			BP2.write("resultats/ex4_ProcheCentre.pgm");
+			BP3.write("resultats/ex4_HF.pgm");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
