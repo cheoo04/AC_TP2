@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -288,11 +289,12 @@ public class FFT_1D {
 		// 	g2.addnLogn(a);
 		// 	in.close();
 
-		double[] a = new double[16];
-		for (int k = 0; k<16; k++){
-			a[k] = 22;
+		int n= 16, k = 2; // k est la fréquence
+		double[] a = new double[n];
+		for (int j = 0; j<16; j++){
+			a[j] = Math.cos(2 * Math.PI * k * j / n);
 		}
-		System.out.println("FFT(5) = " + FFT(a));
+		System.out.println("FFT(a) = " + FFT(a));
 
 	}
 
