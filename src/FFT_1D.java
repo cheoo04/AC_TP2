@@ -155,6 +155,11 @@ public class FFT_1D {
 		}
 		System.out.println("]");
 	}
+
+	private static void afficherTFD(String nom, double[] a) {
+    System.out.println(nom + " : " + FFT(a));
+	}
+
 	
 	public static void main(String[] args) {
 		// double[] t5 = {1,2,3,4};
@@ -290,13 +295,35 @@ public class FFT_1D {
 		// 	g2.addnLogn(a);
 		// 	in.close();
 
-		int n= 16; 
-		int k = new Random().nextInt(n); // k est la fréquence choisit dans {0, ..., 15}
+		int n = 16;
 		double[] a = new double[n];
-		for (int j = 0; j<16; j++){
-			a[j] = Math.cos(2 * Math.PI * k * j / n);
+
+		// 1) vecteur constant
+		for (int t = 0; t < n; t++) {
+			a[t] = 3;
 		}
-		System.out.println("FFT(a) = " + FFT(a));
+		afficherTFD("constante a=3", a);
+
+		// 2) sinusoïde pure, pour toutes les fréquences k
+		for (int k = 0; k < n; k++) {
+			for (int t = 0; t < n; t++) {
+				a[t] = Math.cos(2 * Math.PI * k * t / n);
+			}
+			afficherTFD("cos k=" + k, a);
+		}
+
+		// 3) somme de 2 sinusoïdes
+		for (int t = 0; t < n; t++) {
+			a[t] = Math.cos(2 * Math.PI * t / n) + 0.5 * Math.cos(2 * Math.PI * 3 * t / n);
+		}
+		afficherTFD("cos(1) + 0.5 cos(3)", a);
+
+		// 4) la fonction 4 + 2 sin + cos
+		for (int t = 0; t < n; t++){
+			a[t] = 4 + 2 * Math.sin(2 * Math.PI * 2 * t / n) + Math.cos(2 * Math.PI * 7 * t / n);
+		}
+		afficherTFD("4 + 2 sin(2) + cos(7)", a);
+
 
 	}
 
