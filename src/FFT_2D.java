@@ -59,8 +59,23 @@ public class FFT_2D {
 	// Dans FI on met à zéros tous les coefficients dont le module est inférieur à seuil 
 	// on renvoie le nombre de coefficients conservés 
 	public static int compression_seuil(CpxImg FI, double seuil){
-		//A COMPLETER
-		return 0;
+		
+		int n = FI.taille();
+		int gardes = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				double re = FI.get_p_reel(i, j);
+				double im = FI.get_p_imag(i, j);
+				double mod = Math.sqrt(re*re + im*im);
+				if (mod < seuil){
+					FI.set_p_reel(i, j, 0);
+					FI.set_p_imag(i, j, 0);
+				} else{
+					gardes++;
+				}
+			}
+		}		
+		return gardes;
 	}
 
 	public static CpxImg transformeCpxImg(CpxImg T) {
@@ -123,17 +138,21 @@ public class FFT_2D {
 			// BytePixmap BP2 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			// BytePixmap BP3 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			CpxImg I = new CpxImg(BP);
+			CpxImg TFD_I = FFT(I);
+
+			int comprSeuil = compression_seuil(TFD_I, 30);
+			System.out.println(comprSeuil);
 			
 
-			for (int k=4; k <= 128; k*=2 ) {
-				CpxImg TFD_I = FFT(I);
-				compression(TFD_I, k);
-				CpxImg TFD_inverse = FFT_inverse(TFD_I);
-				BP = TFD_inverse.convert_to_BytePixmap();
-				String path = "resultats/ex5_" + k + "_centre.pgm";
-				BP.write(path);
+			// for (int k=4; k <= 128; k*=2 ) {
+			// 	CpxImg TFD_I = FFT(I);
+			// 	compression(TFD_I, k);
+			// 	CpxImg TFD_inverse = FFT_inverse(TFD_I);
+			// 	BP = TFD_inverse.convert_to_BytePixmap();
+			// 	String path = "resultats/ex5_" + k + "_centre.pgm";
+			// 	BP.write(path);
 				
-			}
+			// }
 
 			// int n = I.taille();
 			// CpxImg annuleCentre = annuler(I, n/2, n/2);
