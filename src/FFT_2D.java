@@ -43,7 +43,15 @@ public class FFT_2D {
 	// FI contient la TDF de I 
 	// Dans FI on met à zéros tous les coefficients correspondant à des fréquences inférieures à k
 	public static void compression(CpxImg FI, int k) {
-		// A COMPLETER
+		int n = FI.taille();
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (i <= n/2 - k || i > n/2 + k || j <= n/2 - k || j > n/2 + k  ){
+					FI.set_p_reel(i, j, 0);
+					FI.set_p_imag(i, j, 0);
+				}
+			}
+		}
 	}
 
 	// compression par seuillage des coefficients faibles
@@ -112,14 +120,25 @@ public class FFT_2D {
 			//PLACEZ ICI VOS TESTS en 2D
 			// lecture
 			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
-			BytePixmap BP2 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
-			BytePixmap BP3 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
+			// BytePixmap BP2 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
+			// BytePixmap BP3 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			CpxImg I = new CpxImg(BP);
+			
 
-			int n = I.taille();
-			CpxImg annuleCentre = annuler(I, n/2, n/2);
-			CpxImg annulProcheCentre = annuler(I, n/2 + 1, n/2);
-			CpxImg annnulHF = annuler(I, n/2 + 100, n/2);
+			for (int k=4; k <= 128; k*=2 ) {
+				CpxImg TFD_I = FFT(I);
+				compression(TFD_I, k);
+				CpxImg TFD_inverse = FFT_inverse(TFD_I);
+				BP = TFD_inverse.convert_to_BytePixmap();
+				String path = "resultats/ex5_" + k + "_centre.pgm";
+				BP.write(path);
+				
+			}
+
+			// int n = I.taille();
+			// CpxImg annuleCentre = annuler(I, n/2, n/2);
+			// CpxImg annulProcheCentre = annuler(I, n/2 + 1, n/2);
+			// CpxImg annnulHF = annuler(I, n/2 + 100, n/2);
 			// CpxImg TFD_I = FFT(I);
 			// CpxImg TFD_inverse_I = FFT_inverse(TFD_I);
 			// CpxImg TFD_trans_I = transformeCpxImg(TFD_I);
@@ -136,14 +155,15 @@ public class FFT_2D {
 			// System.out.println("Erreur maximale de reconstruction : " + erreurMax);
 			
 			// écriture
+			// BP = TFD_I.convert_to_BytePixmap();
 			// BP = TFD_trans_I.convert_to_BytePixmap();
 			// BP = TFD_inverse_I.convert_to_BytePixmap();
-			BP = annuleCentre.convert_to_BytePixmap();
-			BP2 = annulProcheCentre.convert_to_BytePixmap();
-			BP3 = annnulHF.convert_to_BytePixmap();
-			BP.write("resultats/ex4_centre.pgm");
-			BP2.write("resultats/ex4_ProcheCentre.pgm");
-			BP3.write("resultats/ex4_HF.pgm");
+			// BP = annuleCentre.convert_to_BytePixmap();
+			// BP2 = annulProcheCentre.convert_to_BytePixmap();
+			// BP3 = annnulHF.convert_to_BytePixmap();
+			// BP.write("resultats/ex4_centre.pgm");
+			// BP2.write("resultats/ex4_ProcheCentre.pgm");
+			// BP3.write("resultats/ex4_HF.pgm");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
