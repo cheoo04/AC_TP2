@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Scanner;
 /**** on va ici implémenter la transformée de Fourier rapide 1D ****/
 
@@ -289,10 +290,11 @@ public class FFT_1D {
 		// 	g2.addnLogn(a);
 		// 	in.close();
 
-		int n= 16, k = 2; // k est la fréquence
+		int n= 16; 
+		//int k = random(16); // k est la fréquence
 		double[] a = new double[n];
-		for (int j = 0; j<16; j++){
-			a[j] = Math.cos(2 * Math.PI * k * j / n);
+		for (int j = 0; j<n; j++){
+			a[j] = 4 + Math.cos(2 * Math.PI * 7 * j / n) + 2 * Math.sin(2 * Math.PI * 2 * j / n);
 		}
 		System.out.println("FFT(a) = " + FFT(a));
 
