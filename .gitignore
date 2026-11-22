@@ -8,3 +8,6 @@ AC_tp2_part2_donnees
 *.aux
 *.out
 *.md
+*.png
+*.tex
+*.pdf
