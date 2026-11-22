@@ -298,11 +298,14 @@ public class FFT_1D {
 		int n = 16;
 		double[] a = new double[n];
 
-		// 1) vecteur constant
-		for (int t = 0; t < n; t++) {
-			a[t] = 3;
+		// 1) vecteur constant, pour plusieurs valeurs de la constante
+		double[] constantes = {3, -2, 0.5};
+		for (double c : constantes) {
+			for (int t = 0; t < n; t++) {
+				a[t] = c;
+			}
+			afficherTFD("constante a=" + c, a);
 		}
-		afficherTFD("constante a=3", a);
 
 		// 2) sinusoïde pure, pour toutes les fréquences k
 		for (int k = 0; k < n; k++) {

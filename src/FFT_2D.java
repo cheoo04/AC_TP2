@@ -148,6 +148,19 @@ public class FFT_2D {
 		return haut;
 	}
 
+	// Erreur entre l'image d'origine I et l'image reconstruite R
+	public static double mse(CpxImg I, CpxImg R) {
+		int n = I.taille();
+		double somme = 0.0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				double diff = I.get_p_reel(i, j) - R.get_p_reel(i, j);
+				somme += diff * diff;
+			}
+		}
+		return somme / (n * n);
+	}
+
 
 	
 	public static void main(String[] args) {
@@ -155,11 +168,8 @@ public class FFT_2D {
 		try {			
 			//PLACEZ ICI VOS TESTS en 2D
 			// lecture
-			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			// BytePixmap BP2 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
 			// BytePixmap BP3 = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
-			CpxImg I = new CpxImg(BP);
-			CpxImg TFD_I = FFT(I);
 
 			// int comprSeuil = compression_seuil(TFD_I, 30);
 			// System.out.println(comprSeuil);
@@ -220,12 +230,20 @@ public class FFT_2D {
 			int gardes_b = compression_seuil(TFD_B2, seuil_B);
 			System.out.println(gardes_t);
 			System.out.println(gardes_b);
+			System.out.println("Seuil tigre : " + seuil_T);
+			System.out.println("Seuil barbara : " + seuil_B);
 			CpxImg TFD_inverse_T2 = FFT_inverse(TFD_T2);
 			CpxImg TFD_inverse_B2 = FFT_inverse(TFD_B2);
 			BP_t = TFD_inverse_T2.convert_to_BytePixmap();
 			BP_b = TFD_inverse_B2.convert_to_BytePixmap();
 			BP_t.write("resultats/ex7_comprSeuilTigre.pgm");
 			BP_b.write("resultats/ex7_comprSeuilBarbara.pgm");
+
+			
+			System.out.println("Tigre carre : MSE = " + mse(T, TFD_inverse_T));
+			System.out.println("Tigre seuil : MSE = " + mse(T, TFD_inverse_T2));
+			System.out.println("Barbara carre : MSE = " + mse(B, TFD_inverse_B));
+			System.out.println("Barbara seuil : MSE = " + mse(B, TFD_inverse_B2));
 
 
 

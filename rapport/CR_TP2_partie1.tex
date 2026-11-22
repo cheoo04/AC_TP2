@@ -7,25 +7,21 @@
 \usepackage{lmodern}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{amsmath,amssymb}
-\usepackage{icomma}          % virgule décimale en mode math : 0,004
+\usepackage{icomma}
 \usepackage{graphicx}
-\usepackage{booktabs}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{array}
 \usepackage{xcolor}
 \usepackage{xspace}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
-\usetikzlibrary{babel}       % évite les conflits entre babel (french) et TikZ
+\usetikzlibrary{babel}
 \usepackage[hidelinks]{hyperref}
 
 \definecolor{orangeesir}{RGB}{230,120,40}
-
-% format des nombres dans les graphiques (virgule, espace fine pour les milliers)
-\pgfplotsset{
-  /pgf/number format/.cd, use comma, 1000 sep={\,},
-}
-
+\pgfplotsset{/pgf/number format/.cd, use comma, 1000 sep={\,}}
+\renewcommand{\arraystretch}{1.2}
 \newcommand{\us}{\,\textmu s\xspace}
 
 \begin{document}
@@ -33,6 +29,7 @@
 % =====================================================================
 %                          PAGE DE GARDE
 % =====================================================================
+\pagenumbering{gobble}
 \begin{titlepage}
 \begin{tikzpicture}[remember picture,overlay]
   \draw[line width=0.6pt]
@@ -44,16 +41,11 @@
 \centering
 \vspace*{0.3cm}
 
-% Déposer les deux logos du TP1 dans le projet avec ces noms de fichiers
-\IfFileExists{logo_univ_rennes.png}
-  {\includegraphics[width=0.45\textwidth]{logo_univ_rennes.png}}
-  {\fbox{\parbox[c][2.5cm][c]{0.45\textwidth}{\centering Logo Université de Rennes}}}
+\includegraphics[width=0.45\textwidth]{logo_univ_rennes.png}
 
 \vspace{1cm}
 
-\IfFileExists{logo_esir.png}
-  {\includegraphics[width=0.22\textwidth]{logo_esir.png}}
-  {\fbox{\parbox[c][2cm][c]{0.22\textwidth}{\centering Logo ESIR}}}
+\includegraphics[width=0.22\textwidth]{logo esir.png}
 
 \vspace{3cm}
 
@@ -61,7 +53,7 @@
 \vspace{0.3cm}
 {\large Partie 1 : FFT récursive et multiplication de polynômes\par}
 \vspace{0.3cm}
-Algorithmique et Complexité -- ESIR 2 IOT
+Algorithmique et Complexité, ESIR 2 IOT
 
 \vspace{3cm}
 
@@ -81,178 +73,96 @@ Algorithmique et Complexité -- ESIR 2 IOT
 
 \vfill
 
-\fbox{\parbox{0.6\textwidth}{\centering\bfseries\itshape ANNÉE ACADÉMIQUE : 2026 -- 2027}}
+\fbox{\parbox{0.6\textwidth}{\centering\bfseries\itshape ANNÉE ACADÉMIQUE : 2026-2027}}
 
 \vspace{0.5cm}
 \end{titlepage}
 
-% =====================================================================
-%                              SOMMAIRE
-% =====================================================================
 \pagenumbering{roman}
 \tableofcontents
 \newpage
 \pagenumbering{arabic}
 
 % =====================================================================
+
+% =====================================================================
 \section{Introduction}
 % =====================================================================
 
-Dans cette première partie du TP, nous avons programmé une version récursive de la
-transformée de Fourier rapide (FFT), puis sa transformée inverse. Nous les avons ensuite
-utilisées pour multiplier deux polynômes, comme vu au TD~4.
-
-L'idée de départ est la suivante : multiplier deux polynômes à partir de leurs
-coefficients coûte $\Theta(n^2)$, alors que multiplier deux polynômes donnés par leurs
-valeurs en $n$ points ne coûte que $\Theta(n)$. La FFT permet de passer d'une
-représentation à l'autre en $\Theta(n \log n)$, ce qui doit rendre la multiplication
-beaucoup plus rapide pour les grands polynômes.
-
-Après avoir vérifié nos fonctions sur de petits exemples calculés à la main, nous
-avons mesuré les temps de calcul des deux méthodes de multiplication pour des tailles
-croissantes, afin de voir si les mesures confirment bien ces complexités.
+Dans cette partie, on a programmé la FFT récursive et la TFD inverse, puis la
+multiplication de polynômes par FFT. On a ensuite mesuré les temps de calcul de la
+multiplication par FFT et de la multiplication par les coefficients, pour vérifier
+qu'on retrouve bien $\Theta(n \log n)$ et $\Theta(n^2)$.
 
 % =====================================================================
-\section{Implémentation récursive de la FFT}
+\section{FFT récursive et TFD inverse}
 % =====================================================================
 
-\subsection{Principe}
+\subsection{Ce qu'on a fait}
 
-On représente un polynôme $A(X) = \sum_{j=0}^{n-1} a_j X^j$ par le vecteur de ses
-coefficients $a = (a_0, \dots, a_{n-1})$. Sa transformée de Fourier discrète est le
-vecteur de ses valeurs aux racines $n$-ièmes de l'unité :
-\[
-  \mathrm{TFD}(a) = \bigl(A(\omega_n^0), A(\omega_n^1), \dots, A(\omega_n^{n-1})\bigr)
-  \qquad \text{avec } \omega_n = e^{2i\pi/n}.
-\]
-
-Pour calculer ces valeurs rapidement, on sépare les coefficients d'indice pair et ceux
-d'indice impair : $A(X) = A_{\text{pair}}(X^2) + X\,A_{\text{impair}}(X^2)$. Comme
-$\omega_n^{2k} = \omega_{n/2}^k$, il suffit de connaître les TFD (de taille $n/2$) de
-$A_{\text{pair}}$ et de $A_{\text{impair}}$ pour obtenir celle de $A$ :
-\[
-  \forall k \in \{0, \dots, \tfrac{n}{2}-1\} :\quad
-  \begin{cases}
-    A(\omega_n^k) = A_{\text{pair}}(\omega_{n/2}^k) + \omega_n^k\, A_{\text{impair}}(\omega_{n/2}^k)\\[0.1cm]
-    A(\omega_n^{k+n/2}) = A_{\text{pair}}(\omega_{n/2}^k) - \omega_n^k\, A_{\text{impair}}(\omega_{n/2}^k)
-  \end{cases}
-\]
-Le signe moins de la deuxième ligne vient de $\omega_n^{n/2} = -1$ : le même produit
-$\omega_n^k A_{\text{impair}}(\omega_{n/2}^k)$ sert donc à calculer deux coefficients
-à la fois. C'est tout l'intérêt de choisir les racines de l'unité comme points
-d'évaluation : avec des points quelconques comme $0, 1, 2, 3$, on n'aurait pas cette
-symétrie et on ne pourrait pas diviser le problème en deux.
-
-Notre fonction récursive coupe donc le vecteur en deux (indices pairs et impairs),
-calcule la TFD de chaque moitié par un appel récursif, puis les combine avec les
-formules ci-dessus. On s'arrête quand le vecteur ne contient plus qu'un seul élément :
-la TFD d'un vecteur de taille 1 est lui-même (puisque $\omega_1^0 = 1$). Comme on divise
-la taille par deux à chaque appel, $n$ doit être une puissance de 2.
+La fonction de combinaison applique les formules de l'énoncé : à partir des TFD des
+coefficients pairs et impairs (taille $n/2$), elle calcule les $n$ valeurs
+$A(\omega_n^k)$ et $A(\omega_n^{k+n/2})$, avec le même produit
+$\omega_n^k A_{\text{impair}}(\omega_{n/2}^k)$ pour les deux. La FFT sépare le vecteur
+en indices pairs et impairs, s'appelle sur chaque moitié et combine. On s'arrête à
+$n = 1$, où la TFD est le vecteur lui-même ; $n$ doit donc être une puissance de 2.
+Pour l'inverse, on a utilisé la formule de l'énoncé : conjuguer, appliquer la FFT,
+conjuguer et diviser par $n$.
 
 \subsection{Complexité}
 
-Si $T(n)$ est le coût de la FFT sur un vecteur de taille $n$, on fait deux appels sur
-des vecteurs de taille $n/2$, puis une combinaison en $\Theta(n)$ :
-\[
-  T(n) = 2\,T\!\left(\tfrac{n}{2}\right) + \Theta(n)
-  \quad\Longrightarrow\quad T(n) = \Theta(n \log n).
-\]
-En effet, l'arbre des appels a $\log_2 n$ niveaux et chaque niveau coûte $\Theta(n)$ au
-total. Il faut quand même noter que, à chaque appel, notre version crée deux nouveaux
-tableaux et calcule des cosinus et des sinus. Cela ne change pas la complexité, mais
-cela augmente la constante cachée, ce qu'on retrouvera dans les mesures de temps.
+Chaque appel fait deux appels sur $n/2$ et une combinaison en $\Theta(n)$ :
+$T(n) = 2\,T(n/2) + \Theta(n)$, donc $T(n) = \Theta(n \log n)$ ($\log_2 n$ niveaux
+qui coûtent chacun $\Theta(n)$). L'inverse ajoute deux conjugaisons et une division
+en $\Theta(n)$, elle reste en $\Theta(n \log n)$. Notre version crée deux tableaux et
+calcule un cosinus et un sinus à chaque appel : ça ne change pas la complexité, mais
+ça augmente la constante, ce qu'on retrouve dans les mesures.
 
-\subsection{\texorpdfstring{Vérification sur le vecteur $(1, 2, 3, 4)$}{Vérification sur le vecteur (1, 2, 3, 4)}}
+\subsection{Tests}
 
-Pour tester notre FFT, nous avons repris l'exemple du TD~4 : $a = (1, 2, 3, 4)$, soit
-$A(X) = 1 + 2X + 3X^2 + 4X^3$. Ici $n = 4$ et $\omega_4 = e^{i\pi/2} = i$, donc les
-points d'évaluation sont $1$, $i$, $-1$ et $-i$. À la main, avec $i^2 = -1$ et
-$i^3 = -i$ :
-\begin{align*}
-  A(1)  &= 1 + 2 + 3 + 4 = 10\\
-  A(i)  &= 1 + 2i - 3 - 4i = -2 - 2i\\
-  A(-1) &= 1 - 2 + 3 - 4 = -2\\
-  A(-i) &= 1 - 2i - 3 + 4i = -2 + 2i
-\end{align*}
-Notre programme renvoie exactement $[\,10,\ -2-2i,\ -2,\ -2+2i\,]$, ce qui valide notre
-implémentation.
-
-% =====================================================================
-\section{Transformée de Fourier inverse}
-% =====================================================================
-
-Pour retrouver les coefficients à partir des valeurs, on utilise la formule
-\[
-  \mathrm{TFD}^{-1}(y) = \frac{1}{n}\,\bigl(\mathrm{TFD}(y^*)\bigr)^* ,
-\]
-où $^*$ désigne le conjugué. Cette formule est pratique car elle permet de réutiliser
-directement notre FFT, sans écrire un deuxième algorithme : on conjugue $y$, on applique
-la FFT, on conjugue le résultat et on divise par $n$. Elle marche parce que conjuguer
-deux fois revient à remplacer $\omega_n^{kj}$ par $\omega_n^{-kj}$, ce qui est exactement
-ce qu'il faut pour la transformée inverse. Le coût reste en $\Theta(n \log n)$.
-
-En l'appliquant au résultat précédent, on retrouve bien $[\,1,\ 2,\ 3,\ 4\,]$.
+Sur l'exemple du TD, $a = (1, 2, 3, 4)$, on attendait
+$A(1) = 10$, $A(i) = -2 - 2i$, $A(-1) = -2$, $A(-i) = -2 + 2i$. Notre FFT renvoie
+exactement $[\,10,\ -2-2i,\ -2,\ -2+2i\,]$, et l'inverse appliquée à ce résultat
+redonne $[\,1,\ 2,\ 3,\ 4\,]$.
 
 % =====================================================================
 \section{Multiplication de polynômes}
 % =====================================================================
 
-\subsection{Principe}
-
-Pour calculer $C = A \times B$ avec la FFT, on suit trois étapes :
-\begin{enumerate}
-  \item on calcule les valeurs de $A$ et de $B$ aux racines de l'unité avec la FFT,
-        en $\Theta(n \log n)$ ;
-  \item on multiplie ces valeurs deux à deux, puisque $C(x) = A(x)\,B(x)$ pour tout
-        point $x$, en $\Theta(n)$ ;
-  \item on revient aux coefficients de $C$ avec la FFT inverse, en $\Theta(n \log n)$.
-\end{enumerate}
-Avant la première étape, on double la taille des vecteurs en les complétant par des
-zéros. En effet, si $A$ et $B$ ont $n$ coefficients, $C$ est de degré $2n-2$, donc il
-faut au moins $2n-1$ points pour le déterminer. Avec seulement $n$ points, le résultat
-serait faux. Doubler la taille permet aussi de rester sur une puissance de 2.
-
-Au total, la multiplication par FFT coûte $\Theta(n \log n)$, contre $\Theta(n^2)$ pour
-la méthode classique par les coefficients, où chacun des $2n-1$ coefficients du produit
-est une somme pouvant aller jusqu'à $n$ produits.
-
-\subsection{Tests}
-
-Nous avons testé la multiplication sur les exemples de l'énoncé, le dernier étant
-$A_3 = 1 + 2X + 3X^2 + 4X^3$ et $B_3 = -3 + 2X - 5X^2$. Le tableau~\ref{tab:mult}
-compare le résultat attendu au résultat obtenu.
+On a suivi la méthode du TD : FFT de $A$ et de $B$, produit terme à terme, FFT
+inverse, soit $\Theta(n \log n)$ au total. Le produit est de degré $2n-2$ : il faut
+au moins $2n-1$ points, donc on complète les deux vecteurs avec des zéros jusqu'à la
+taille $2n$ (qui reste une puissance de 2). On a testé les deux exemples de l'énoncé
+et $A_3 \times B_3$ avec $A_3 = 1 + 2X + 3X^2 + 4X^3$ et $B_3 = -3 + 2X - 5X^2$, dont
+le produit attendu est $-3 - 4X - 10X^2 - 16X^3 - 7X^4 - 20X^5$.
 
 \begin{table}[H]
 \centering
-\caption{Tests de la multiplication de polynômes par FFT.}
+\caption{Tests de la multiplication par FFT.}
 \label{tab:mult}
-\small
-\begin{tabular}{lll}
-\toprule
+\begin{tabular}{|l|l|l|}
+\hline
 \textbf{Produit} & \textbf{Résultat attendu} & \textbf{Coefficients obtenus} \\
-\midrule
+\hline
 $2 \times (-3)$ & $-6$ & $[\,-6,\ 0\,]$ \\
+\hline
 $(2 + X)(-3 + 2X)$ & $-6 + X + 2X^2$ & $[\,-6,\ 1,\ 2,\ 0\,]$ \\
-$A_3 \times B_3$ & voir ci-dessous &
+\hline
+$A_3 \times B_3$ & voir ci-dessus &
   $[\,-3,\ -4,\ -10,\ -16,\ -7,\ -20,\ 0,\ 0\,]$ \\
-\bottomrule
+\hline
 \end{tabular}
 \end{table}
 
-Pour le dernier exemple, nous avons comparé avec la méthode par les coefficients, qui
-donne $-3 - 4X - 10X^2 - 16X^3 - 7X^4 - 20X^5$ : les deux méthodes sont d'accord.
-
-Quelques remarques sur ces résultats :
+Les résultats sont justes, et la méthode par les coefficients donne la même chose
+pour $A_3 \times B_3$. Quelques remarques :
 \begin{itemize}
-  \item Le vecteur obtenu contient toujours $2n$ valeurs, alors que le produit n'a que
-        $2n-1$ coefficients. Le dernier coefficient (celui de $X^{2n-1}$) vaut donc
-        toujours 0. Il vient simplement du doublement de la taille.
-  \item Notre fonction suppose que les deux polynômes ont le même nombre de
-        coefficients. C'est pour cela que, dans le dernier exemple, $B$ est complété par
-        un zéro : $(-3, 2, -5, 0)$.
-  \item La FFT calcule avec des nombres flottants et des cosinus et sinus, donc les
-        coefficients obtenus ne sont exacts qu'aux erreurs d'arrondi près. Ces écarts
-        sont trop petits pour apparaître à l'affichage.
+  \item on obtient $2n$ valeurs pour $2n-1$ coefficients : la dernière vient du
+        doublement de taille et vaut toujours 0 ;
+  \item notre fonction suppose que les deux polynômes ont le même nombre de
+        coefficients, on a donc écrit $B_3 = (-3, 2, -5, 0)$ ;
+  \item les calculs sont faits en flottants, les coefficients sont justes à des
+        erreurs d'arrondi près, trop petites pour apparaître à l'affichage.
 \end{itemize}
 
 % =====================================================================
@@ -261,84 +171,60 @@ Quelques remarques sur ces résultats :
 
 \subsection{Démarche}
 
-Nous avons mesuré le temps de multiplication de deux polynômes à coefficients
-aléatoires, avec chacune des deux méthodes, pour $n = 2^6, 2^7, \dots, 2^{15}$ (des
-puissances de 2, à cause de la FFT). Comme les petites tailles prennent moins d'une
-milliseconde, les temps sont mesurés en microsecondes.
+On a mesuré le temps de multiplication de deux polynômes aléatoires avec les deux
+méthodes, pour $n = 2^6$ à $2^{15}$, en microsecondes. Avant la série, on fait
+20 multiplications non mesurées pour que la machine virtuelle Java ait déjà compilé
+le code, et pour chaque taille on garde le minimum de 5 exécutions.
 
-Les premiers appels d'un programme Java sont souvent plus lents que les suivants, car la
-machine virtuelle optimise le code au fur et à mesure de son exécution. Pour que cela
-ne fausse pas les mesures, nous avons :
-\begin{itemize}
-  \item fait une vingtaine de multiplications « à vide » (non mesurées) avant de
-        commencer ;
-  \item répété chaque mesure 5 fois et gardé le temps le plus court, qui est le moins
-        perturbé par le reste du système.
-\end{itemize}
-Nous verrons dans la partie~\ref{sec:ecarts} que cet échauffement n'a pas suffi pour
-toutes les parties du programme.
-
-D'après la théorie, nous avons retenu les modèles suivants :
+Les modèles viennent de la complexité théorique :
 \[
-  T_{\text{coeff}}(n) = a\,n^2
-  \qquad\text{et}\qquad
-  T_{\text{FFT}}(n) = b\,n \ln n .
+  T_{\text{coeff}}(n) = a\,n^2, \qquad T_{\text{FFT}}(n) = b\,n \ln n .
 \]
-Pour estimer $a$ et $b$, nous ne nous sommes pas contentés d'un seul point : nous avons
-calculé les rapports $T(n)/n^2$ et $T(n)/(n \ln n)$ pour toutes les tailles, et cherché
-la zone où ils restent à peu près constants. Nous avons aussi regardé de combien le
-temps est multiplié quand $n$ double. Si le modèle est bon, ce rapport doit valoir
-$4$ pour la méthode par coefficients, puisque $(2n)^2 = 4n^2$, et
-$2 \ln n / \ln(n/2)$ pour la FFT, c'est-à-dire un peu plus de 2.
+Pour estimer $a$ et $b$ avec toutes les mesures et pas un seul point, on a calculé
+$T(n)/n^2$ et $T(n)/(n \ln n)$ pour chaque taille. On a aussi calculé de combien le
+temps est multiplié quand $n$ double : on attend 4 pour $n^2$ et
+$2 \ln n / \ln(n/2)$, un peu plus de 2, pour $n \ln n$.
 
 \subsection{Méthode par les coefficients}
 
 \begin{table}[H]
 \centering
-\caption{Temps de la méthode par les coefficients (minimum de 5 exécutions).}
+\caption{Méthode par les coefficients (minimum de 5 exécutions).}
 \label{tab:coeff}
-\begin{tabular}{rrrr}
-\toprule
-$n$ & $T(n)$ (\textmu s) & $T(n)/n^2$ ($\times 10^{-3}$\,\textmu s) & $T(n)/T(n/2)$ \\
-\midrule
-64     & 17          & 4,15 & --   \\
-128    & 70          & 4,27 & 4,12 \\
-256    & 289         & 4,41 & 4,13 \\
-512    & 1\,180      & 4,50 & 4,08 \\
-1\,024 & 4\,822      & 4,60 & 4,09 \\
-2\,048 & 18\,733     & 4,47 & 3,88 \\
-4\,096 & 71\,680     & 4,27 & 3,83 \\
-8\,192 & 276\,822    & 4,12 & 3,86 \\
-16\,384 & 976\,377   & 3,64 & 3,53 \\
-32\,768 & 3\,913\,325 & 3,64 & 4,01 \\
-\bottomrule
+\begin{tabular}{|r|r|r|r|}
+\hline
+$n$ & $T(n)$ (\textmu s) & $T(n)/n^2$ ($10^{-3}$\,\textmu s) & $T(n)/T(n/2)$ \\
+\hline
+64      & 17           & 4,15 & \\
+128     & 70           & 4,27 & 4,12 \\
+256     & 289          & 4,41 & 4,13 \\
+512     & 1\,180       & 4,50 & 4,08 \\
+1\,024  & 4\,822       & 4,60 & 4,09 \\
+2\,048  & 18\,733      & 4,47 & 3,88 \\
+4\,096  & 71\,680      & 4,27 & 3,83 \\
+8\,192  & 276\,822     & 4,12 & 3,86 \\
+16\,384 & 976\,377     & 3,64 & 3,53 \\
+32\,768 & 3\,913\,325  & 3,64 & 4,01 \\
+\hline
 \end{tabular}
 \end{table}
 
-Quand $n$ double, le temps est multiplié par un facteur compris entre 3,5 et 4,1, avec
-une moyenne de 3,95. C'est très proche de 4, ce qui confirme une croissance
-quadratique.
-
-Le rapport $T(n)/n^2$ varie peu : entre $4{,}1\cdot10^{-3}$ et $4{,}6\cdot10^{-3}$\us
-jusqu'à $n = 8\,192$, puis il descend à $3{,}6\cdot10^{-3}$\us pour les deux plus grandes
-tailles. Nous avons d'abord essayé $a = 0{,}0044$\us (la valeur des petites tailles),
-mais la courbe passait alors environ 20\,\% au-dessus des deux derniers points. Nous
-avons donc choisi un compromis :
+Le temps est multiplié par 3,5 à 4,1 quand $n$ double (3,95 en moyenne) : c'est bien
+une croissance en $n^2$. $T(n)/n^2$ reste entre $4{,}1$ et $4{,}6 \cdot 10^{-3}$\us
+jusqu'à $n = 8\,192$, puis descend à $3{,}6\cdot 10^{-3}$\us. Avec
+$a = 0{,}0044$\us (valeur des petites tailles), le modèle passait 20\,\% au-dessus des
+deux derniers points, on a donc pris
 \[
-  T_{\text{coeff}}(n) \approx 0{,}004 \cdot n^2 \ \text{\textmu s}.
+  T_{\text{coeff}}(n) \approx 0{,}004 \cdot n^2 \ \text{\textmu s},
 \]
-Avec cette valeur, l'écart entre le modèle et les mesures reste inférieur à 13\,\% sur
-toutes les tailles (figure~\ref{fig:coeff}). Le changement de niveau du rapport ne
-vient pas de l'algorithme : nous montrons dans la partie~\ref{sec:ecarts} qu'il est dû
-à un changement de fréquence du processeur pendant la série de mesures. De toute façon,
-cet écart reste faible devant la croissance du temps, qui est multiplié par plus de
-200\,000 entre $n = 64$ et $n = 32\,768$.
+qui reste à moins de 13\,\% de toutes les mesures (figure~\ref{fig:coeff}). On
+revient sur la baisse du rapport dans la partie~\ref{sec:ecarts}.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=0.8\linewidth, height=7cm,
+  width=0.75\linewidth, height=6.5cm,
   xlabel={Taille $n$}, ylabel={Temps (\textmu s)},
   xmin=0, xmax=34000, ymin=0,
   xtick={0,8192,16384,24576,32768}, scaled x ticks=false,
@@ -353,8 +239,7 @@ cet écart reste faible devant la croissance du temps, qui est multiplié par pl
 \addlegendentry{$T(n) = 0{,}004\, n^2$}
 \end{axis}
 \end{tikzpicture}
-\caption{Temps de la multiplication par les coefficients et modèle quadratique
-($a \approx 0{,}004$\,\textmu s).}
+\caption{Méthode par les coefficients : mesures et modèle quadratique.}
 \label{fig:coeff}
 \end{figure}
 
@@ -362,13 +247,13 @@ cet écart reste faible devant la croissance du temps, qui est multiplié par pl
 
 \begin{table}[H]
 \centering
-\caption{Temps de la méthode par FFT (minimum de 5 exécutions).}
+\caption{Méthode par FFT (minimum de 5 exécutions).}
 \label{tab:fft}
-\begin{tabular}{rrrrr}
-\toprule
-$n$ & $T(n)$ (\textmu s) & $T(n)/(n \ln n)$ (\textmu s) & $T(n)/T(n/2)$ & valeur attendue \\
-\midrule
-64      & 107     & 0,402 & --   & --   \\
+\begin{tabular}{|r|r|r|r|r|}
+\hline
+$n$ & $T(n)$ (\textmu s) & $T(n)/(n \ln n)$ (\textmu s) & $T(n)/T(n/2)$ & attendu \\
+\hline
+64      & 107     & 0,402 &      &      \\
 128     & 234     & 0,377 & 2,19 & 2,33 \\
 256     & 512     & 0,361 & 2,19 & 2,29 \\
 512     & 1\,861  & 0,583 & 3,63 & 2,25 \\
@@ -378,34 +263,26 @@ $n$ & $T(n)$ (\textmu s) & $T(n)/(n \ln n)$ (\textmu s) & $T(n)/T(n/2)$ & valeur
 8\,192  & 13\,590 & 0,184 & 2,01 & 2,17 \\
 16\,384 & 28\,445 & 0,179 & 2,09 & 2,15 \\
 32\,768 & 60\,935 & 0,179 & 2,14 & 2,14 \\
-\bottomrule
+\hline
 \end{tabular}
 \end{table}
 
-Ici, les mesures sont plus irrégulières pour les petites tailles. Jusqu'à $n = 2\,048$,
-le rapport $T(n)/(n \ln n)$ tourne autour de 0,4 et fait même un saut à 0,58 pour
-$n = 512$. Les rapports de doublement (3,63 puis 1,57 et 1,28) n'ont pas de sens : un
-temps multiplié par seulement 1,28 quand $n$ double est impossible pour un algorithme en
-$n \ln n$, si le code exécuté reste le même. Nous montrons dans la
-partie~\ref{sec:ecarts} que ces petites tailles ont été faussées par la compilation du
-programme pendant les mesures.
-
-En revanche, à partir de $n = 8\,192$, le rapport devient très stable
-(0,184 ; 0,179 ; 0,179), et les rapports de doublement (2,01 ; 2,09 ; 2,14) se
-rapprochent de la valeur attendue : pour $n = 32\,768$, on mesure 2,14 pour une valeur
-théorique de 2,14. Nous avons donc pris $b$ dans cette zone stable :
+Jusqu'à $n = 4\,096$, les mesures sont irrégulières : le rapport tourne autour de 0,4
+avec un saut à 0,58, et le temps est multiplié par 3,63, puis 1,57, puis 1,28. Un
+facteur 1,28 quand $n$ double est impossible pour un algorithme en $n \ln n$ si le code
+ne change pas, donc ces mesures sont faussées (partie~\ref{sec:ecarts}). À partir de
+$n = 8\,192$, le rapport est stable (0,184 ; 0,179 ; 0,179) et les facteurs sont
+proches de ceux attendus. On a pris $b$ dans cette zone :
 \[
-  T_{\text{FFT}}(n) \approx 0{,}18 \cdot n \ln n \ \text{\textmu s}.
+  T_{\text{FFT}}(n) \approx 0{,}18 \cdot n \ln n \ \text{\textmu s},
 \]
-Pour $n \geq 8\,192$, l'écart entre le modèle et les mesures est inférieur à 3\,\%
-(figure~\ref{fig:fft}). Pour les petites tailles, les points sont au-dessus de la
-courbe, pour la raison expliquée dans la partie suivante.
+à moins de 3\,\% des mesures pour $n \geq 8\,192$ (figure~\ref{fig:fft}).
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=0.8\linewidth, height=7cm,
+  width=0.75\linewidth, height=6.5cm,
   xlabel={Taille $n$}, ylabel={Temps (\textmu s)},
   xmin=0, xmax=34000, ymin=0,
   xtick={0,8192,16384,24576,32768}, scaled x ticks=false,
@@ -420,152 +297,36 @@ courbe, pour la raison expliquée dans la partie suivante.
 \addlegendentry{$T(n) = 0{,}18\, n \ln n$}
 \end{axis}
 \end{tikzpicture}
-\caption{Temps de la multiplication par FFT et modèle en $n \ln n$
-($b \approx 0{,}18$\,\textmu s).}
+\caption{Méthode par FFT : mesures et modèle en $n \ln n$.}
 \label{fig:fft}
 \end{figure}
 
-\subsection{Analyse des écarts aux modèles}
+\subsection{Points qui s'écartent des modèles}
 \label{sec:ecarts}
 
-Nos deux séries s'écartent du modèle à certains endroits : pour la méthode par
-coefficients, le rapport $T(n)/n^2$ change brusquement de niveau ; pour la FFT, les
-petites tailles sont irrégulières. Plutôt que de laisser ces écarts sans explication,
-nous avons fait des mesures supplémentaires pour en trouver la cause, sur le même
-ordinateur et avec le même protocole (meilleur de 5 exécutions).
-
-\subsubsection{FFT : la compilation du programme pendant les mesures}
-
-La machine virtuelle Java commence par interpréter le programme, ce qui est lent, puis
-elle compile en code machine les parties qui sont exécutées souvent. Notre échauffement
-(20 multiplications) suffit pour la FFT elle-même : comme elle est récursive, elle est
-appelée des milliers de fois à chaque multiplication, et elle est compilée très tôt.
-En revanche, les boucles linéaires qui l'entourent (conjugaison, produit terme à terme,
-division par $n$ dans la transformée inverse, recopie avec ajout des zéros) ne sont
-exécutées qu'une ou deux fois par multiplication. En activant le journal de compilation
-de la machine virtuelle, nous avons vu qu'elles ne sont optimisées qu'au cours de la
-série, entre $n = 1\,024$ et $n = 16\,384$. Avant cela, elles tournent beaucoup plus
-lentement, ce qui gonfle les temps des petites tailles. C'est aussi ce qui explique le
-rapport de 1,28 entre $n = 2\,048$ et $n = 4\,096$ : la seconde mesure a profité d'un
-code plus rapide que la première.
-
-Pour le vérifier, nous avons enchaîné trois fois la série complète de mesures dans la
-même exécution du programme (tableau~\ref{tab:passes}). La première série présente les
-mêmes irrégularités que nos mesures. Dès la deuxième, quand tout le code est compilé,
-le rapport $T(n)/(n \ln n)$ ne varie plus qu'entre 0,154 et 0,173 sur toutes les tailles,
-et les rapports de doublement sont proches des valeurs attendues, même pour les petits
-$n$. Le modèle en $n \ln n$ est donc valable dès les petites tailles : ce sont nos
-premières mesures qui étaient faussées.
-
-\begin{table}[H]
-\centering
-\caption{FFT : trois séries de mesures enchaînées dans la même exécution
-(la troisième donne les mêmes valeurs que la deuxième).}
-\label{tab:passes}
-\begin{tabular}{rrrrr}
-\toprule
- & \multicolumn{1}{c}{1\textsuperscript{re} série} & \multicolumn{2}{c}{2\textsuperscript{e} série} & \\
-\cmidrule(lr){2-2}\cmidrule(lr){3-4}
-$n$ & $T(n)/(n \ln n)$ & $T(n)/(n \ln n)$ & $T(n)/T(n/2)$ & valeur attendue \\
-\midrule
-64      & 0,316 & 0,173 & --   & --   \\
-128     & 0,277 & 0,172 & 2,33 & 2,33 \\
-256     & 0,257 & 0,164 & 2,18 & 2,29 \\
-512     & 0,253 & 0,165 & 2,26 & 2,25 \\
-1\,024  & 0,387 & 0,160 & 2,15 & 2,22 \\
-2\,048  & 0,324 & 0,160 & 2,21 & 2,20 \\
-4\,096  & 0,313 & 0,159 & 2,16 & 2,18 \\
-8\,192  & 0,182 & 0,157 & 2,14 & 2,17 \\
-16\,384 & 0,178 & 0,155 & 2,13 & 2,15 \\
-32\,768 & 0,181 & 0,154 & 2,13 & 2,14 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Nous avons aussi vérifié que le ramasse-miettes (la libération automatique de la
-mémoire) n'était pas en cause. Pendant ces mesures, il se déclenche environ toutes les
-100\,ms, avec des pauses de 1,2\,ms au plus. Comme nous gardons le meilleur de
-5 exécutions, une pause isolée ne peut pas fausser une mesure.
-
-Enfin, même dans la deuxième série, $T(n)/(n \ln n)$ diminue lentement (de 0,173 à
-0,154). Cela vient d'une partie du travail qui n'est que linéaire : les $n$ feuilles de
-la récursion créent chacune un petit tableau, et les boucles de conjugaison, de produit
-et de recopie coûtent $\Theta(n)$. Un modèle $T(n) = b\,n \ln n + c\,n$, avec
-$b \approx 0{,}142$\us et $c \approx 0{,}132$\us, suit les mesures de la deuxième série
-à moins de 2\,\% près sur toutes les tailles. Ce terme en $n$ ne change pas la
-complexité, puisqu'il devient négligeable devant $n \ln n$, mais il explique cette lente
-décroissance du rapport.
-
-\subsubsection{Méthode par coefficients : la fréquence du processeur}
-
-Pour la méthode par coefficients, le journal de compilation ne montre aucune
-recompilation pendant la série : le code exécuté est le même pour toutes les tailles.
-Pourtant, le rapport $T(n)/n^2$ passe brusquement d'environ $4{,}4\cdot10^{-3}$ à
-$3{,}7\cdot10^{-3}$\us, et pas à la même taille d'une exécution à l'autre : entre
-$8\,192$ et $16\,384$ dans nos mesures, mais entre $1\,024$ et $8\,192$ quand nous avons
-relancé le programme. Un phénomène qui dépend du moment de la mesure et non de $n$ ne
-peut pas venir de l'algorithme. Nous avons fait deux vérifications
-(tableau~\ref{tab:freq}) :
 \begin{itemize}
-  \item mesurer les tailles dans l'ordre \emph{décroissant} : le rapport vaut alors entre
-        $3{,}60\cdot10^{-3}$ et $3{,}75\cdot10^{-3}$\us pour toutes les tailles ;
-  \item chronométrer, juste avant chaque mesure, une boucle de calibration : une suite de
-        calculs qui dépendent chacun du résultat précédent, et qui prend donc toujours le
-        même nombre de cycles du processeur. Sa durée ne dépend que de la fréquence du
-        processeur.
+  \item \textbf{FFT, petites tailles.} Les mesures jusqu'à $n = 4\,096$ sont au-dessus
+        du modèle et irrégulières. On pense que c'est la compilation à la volée de
+        Java : notre échauffement de 20 multiplications ne suffit sans doute pas pour
+        les parties du code qui ne tournent qu'une fois par multiplication
+        (conjugaison, produit terme à terme, recopie avec les zéros), et elles sont
+        encore lentes au début de la série. On ne s'appuie donc que sur les grandes
+        tailles pour estimer $b$.
+  \item \textbf{Coefficients, changement de niveau.} $T(n)/n^2$ passe d'environ
+        $4{,}4$ à $3{,}6 \cdot 10^{-3}$\us entre $n = 8\,192$ et $n = 16\,384$, alors
+        que l'algorithme est le même. Une explication possible
+        est un changement de fréquence du processeur (ordinateur portable) pendant la
+        série. L'écart reste petit devant la croissance du temps, multiplié par plus de
+        200\,000 entre $n = 64$ et $n = 32\,768$.
 \end{itemize}
 
-\begin{table}[H]
-\centering
-\caption{Méthode par coefficients : rapport $T(n)/n^2$ (en $10^{-3}$\,\textmu s) et
-durée d'une itération de la boucle de calibration (en ns), mesurée juste avant.}
-\label{tab:freq}
-\begin{tabular}{rrrrrr}
-\toprule
- & \multicolumn{2}{c}{1\textsuperscript{re} série (croissante)} & \multicolumn{2}{c}{2\textsuperscript{e} série (croissante)} & ordre décroissant \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}
-$n$ & $T(n)/n^2$ & calibration & $T(n)/n^2$ & calibration & $T(n)/n^2$ \\
-\midrule
-64     & 4,15 & 2,23 & 3,66 & 1,91 & 3,66 \\
-128    & 4,76 & 2,23 & 3,60 & 1,91 & 3,60 \\
-256    & 4,26 & 2,23 & 3,65 & 1,91 & 3,65 \\
-512    & 4,30 & 2,23 & 3,68 & 1,91 & 3,68 \\
-1\,024 & 4,34 & 2,23 & 3,71 & 1,91 & 3,70 \\
-2\,048 & 4,38 & 2,23 & 3,71 & 1,91 & 3,72 \\
-4\,096 & 4,37 & 2,23 & 3,72 & 1,91 & 3,72 \\
-8\,192 & 3,76 & 2,23 puis 1,91 & 3,73 & 1,91 & 3,73 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Le résultat est net : tant que la boucle de calibration met 2,23\,ns par itération, le
-rapport vaut environ $4{,}3\cdot10^{-3}$\us ; dès qu'elle passe à 1,91\,ns, il tombe à
-$3{,}7\cdot10^{-3}$\us. Le rapport entre les deux durées de calibration
-($2{,}23 / 1{,}91 \approx 1{,}17$) est le même que celui entre les deux niveaux de
-$T(n)/n^2$ ($4{,}37 / 3{,}72 \approx 1{,}17$). Le processeur de notre ordinateur
-portable ajuste sa fréquence selon la charge : dans nos essais, il change de niveau à
-des moments variables, et passe le plus souvent à une fréquence environ 17\,\% plus
-élevée après quelques secondes de calcul. Ce phénomène ne peut pas expliquer les écarts
-de la FFT : il ne joue que sur 17\,\%, alors que les petites tailles de la FFT étaient
-jusqu'à deux fois trop lentes.
-
-Ce changement de niveau n'a donc rien à voir avec l'algorithme. À fréquence constante,
-$T(n)/n^2$ est quasiment constant de $n = 64$ à $n = 8\,192$, ce qui confirme un
-comportement quadratique, avec $a \approx 0{,}0037$\us. La valeur $a = 0{,}004$\us que
-nous avions retenue pour nos mesures est un compromis entre les deux fréquences.
-
 \subsection{Comparaison des deux méthodes}
-
-Pour comparer les deux méthodes sur un même graphique, nous avons utilisé des échelles
-logarithmiques (figure~\ref{fig:comparaison}), sinon les temps de la FFT seraient
-écrasés contre l'axe. Dans cette représentation, une courbe en $n^2$ est une droite de
-pente 2, et une courbe en $n \ln n$ a une pente à peine supérieure à 1.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{loglogaxis}[
-  width=0.8\linewidth, height=7cm,
+  width=0.75\linewidth, height=6.5cm,
   xlabel={Taille $n$}, ylabel={Temps (\textmu s)},
   log basis x=2,
   grid=major, legend pos=north west,
@@ -582,74 +343,49 @@ pente 2, et une courbe en $n \ln n$ a une pente à peine supérieure à 1.
 \addlegendentry{Par FFT}
 \end{loglogaxis}
 \end{tikzpicture}
-\caption{Comparaison des deux méthodes (échelles logarithmiques).}
+\caption{Comparaison des deux méthodes (échelles logarithmiques : $n^2$ donne une
+droite de pente 2, $n \ln n$ une pente un peu supérieure à 1).}
 \label{fig:comparaison}
 \end{figure}
 
-Ce qui nous a d'abord surpris, c'est que la FFT est plus \emph{lente} pour les petits
-polynômes : à $n = 64$, elle met 107\us contre 17\us pour la méthode par les
-coefficients. Les deux courbes se croisent entre $n = 512$ (1\,180\us contre 1\,861\us)
-et $n = 1\,024$ (4\,822\us contre 2\,926\us). Cela s'explique par les constantes :
-$b$ est environ 45 fois plus grand que $a$, à cause de la récursion, de la création de
-tableaux à chaque appel et des calculs de cosinus et de sinus. Pour des petites
-valeurs de $n$, cette constante compte plus que la différence entre $n^2$ et $n \ln n$.
+Pour les petites tailles, la FFT est plus lente : 107\us contre 17\us à $n = 64$. Les
+courbes se croisent entre $n = 512$ (1\,180\us contre 1\,861\us) et $n = 1\,024$
+(4\,822\us contre 2\,926\us). C'est la constante : $b/a \approx 45$, à cause de la
+récursion, des tableaux créés et des cosinus et sinus à chaque appel.
 
-On peut retrouver le point de croisement avec les modèles, en résolvant
-$a\,n^2 = b\,n \ln n$, c'est-à-dire $n / \ln n = b/a$. Avec les valeurs obtenues une fois
-tout le code compilé et à fréquence constante ($a \approx 0{,}0037$\us et
-$b \approx 0{,}165$\us aux petites tailles, voir partie~\ref{sec:ecarts}), on trouve
-$b/a \approx 45$, soit $n \approx 250$. C'est bien ce que donnent les mesures refaites
-dans ces conditions : la méthode par coefficients est encore plus rapide à $n = 128$
-(59\us contre 107\us), et la FFT la rattrape à $n = 256$ (239\us contre 233\us). Dans
-notre première série, le croisement apparaît plus tard, entre 512 et 1\,024,
-uniquement parce que les temps de la FFT aux petites tailles étaient gonflés par la
-compilation.
+Avec les modèles, le croisement est là où $a\,n^2 = b\,n \ln n$, soit
+$n / \ln n = b/a \approx 45$, ce qui donne $n \approx 250$. Nos mesures donnent un
+croisement plus tard, entre 512 et 1\,024, parce que les temps de la FFT aux petites
+tailles sont au-dessus du modèle (partie~\ref{sec:ecarts}).
 
-Au-delà, l'écart grandit très vite, car $n^2 / (n \ln n) = n / \ln n$ augmente avec
-$n$. Pour $n = 32\,768$, la FFT est déjà environ 64 fois plus rapide
-(61\,ms contre 3,9\,s).
+Ensuite l'écart grandit comme $n / \ln n$ : à $n = 32\,768$, la FFT est 64 fois plus
+rapide (61\,ms contre 3,9\,s).
 
 \subsection{Extrapolation}
 
-Pour avoir un ordre de grandeur, nous avons utilisé nos deux modèles pour estimer le
-temps de multiplication de deux polynômes de taille $n = 2^{20}$ (environ un million
-de coefficients) :
+En prolongeant nos deux modèles jusqu'à $n = 2^{20}$ (environ un million de
+coefficients) :
 \[
-  T_{\text{coeff}}(2^{20}) \approx 0{,}004 \times (2^{20})^2 \approx 4{,}4\cdot10^{9}\ \text{\textmu s}
-  \approx 73\ \text{min}
+  T_{\text{coeff}}(2^{20}) \approx 0{,}004 \times (2^{20})^2\ \text{\textmu s} \approx 73\ \text{min},
+  \qquad
+  T_{\text{FFT}}(2^{20}) \approx 0{,}18 \times 2^{20} \times \ln(2^{20})\ \text{\textmu s} \approx 2{,}6\ \text{s}.
 \]
-\[
-  T_{\text{FFT}}(2^{20}) \approx 0{,}18 \times 2^{20} \times \ln(2^{20}) \approx 2{,}6\cdot10^{6}\ \text{\textmu s}
-  \approx 2{,}6\ \text{s}
-\]
-La FFT serait donc environ 1\,700 fois plus rapide. Avec les coefficients mesurés en
-régime stable ($a \approx 0{,}0037$\us et $b \approx 0{,}155$\us), on obtient environ
-68\,min et 2,3\,s : l'ordre de grandeur ne change pas. Il s'agit bien d'une extrapolation
-des modèles ajustés sur nos mesures, et non d'un temps calculé à partir de la seule
-complexité théorique. Elle suppose aussi que les coefficients $a$ et $b$ restent les
-mêmes 32 fois au-delà de notre plus grande mesure, ce qui n'est pas garanti (par
-exemple à cause de la mémoire). Seul l'ordre de grandeur est donc à retenir.
+La FFT serait environ 1\,700 fois plus rapide. Ce sont des extrapolations de nos
+modèles, pas des temps théoriques, et elles supposent
+que $a$ et $b$ ne changent pas jusqu'à 32 fois notre plus grande taille (par exemple, les données ne tiennent plus dans le
+cache du processeur) : seul l'ordre de grandeur compte.
 
 % =====================================================================
 \section{Conclusion}
 % =====================================================================
 
-Dans cette première partie, nous avons implémenté une FFT récursive et sa transformée
-inverse, et nous les avons validées sur l'exemple du TD. Nous les avons ensuite
-utilisées pour multiplier des polynômes, avec les mêmes résultats que la méthode
-classique.
-
-Les mesures confirment les complexités théoriques : le temps de la méthode par les
-coefficients est multiplié par environ 4 quand $n$ double, ce qui correspond à
-$\Theta(n^2)$, alors que celui de la FFT est multiplié par un peu plus de 2, ce qui
-correspond à $\Theta(n \log n)$. Les écarts que nous avons observés ne venaient pas des
-algorithmes mais de l'environnement d'exécution : la compilation du programme pendant
-les mesures et les changements de fréquence du processeur. Une fois ces effets
-identifiés, les deux modèles décrivent très bien les mesures. Elles montrent aussi
-qu'une meilleure complexité ne
-veut pas dire un algorithme plus rapide dans tous les cas : à cause de sa constante
-plus grande, la FFT n'est intéressante qu'à partir de quelques centaines de
-coefficients. Pour les grands polynômes, en revanche, le gain est énorme, puisque
-$n \ln n$ croît beaucoup moins vite que $n^2$.
+Notre FFT et son inverse donnent les bons résultats, et la multiplication par FFT
+donne les mêmes coefficients que la méthode classique. Les mesures confirment les
+complexités : quand $n$ double, le temps est multiplié par environ 4 pour la méthode
+par les coefficients et par un peu plus de 2 pour la FFT. Les points qui
+s'écartent des modèles semblent venir de l'exécution du programme (compilation de
+Java, fréquence du processeur) et pas des algorithmes. Enfin, à cause de sa constante 45 fois plus grande, la FFT
+n'est plus rapide qu'à partir de quelques centaines de coefficients ; après, le gain
+grandit comme $n / \ln n$.
 
 \end{document}
