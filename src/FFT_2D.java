@@ -128,6 +128,27 @@ public class FFT_2D {
 		return res;
 	}
 
+	// Recherche le seuil par dichotomie
+	public static double trouverSeuil(CpxImg I, int cible) {
+		double bas = 0;
+		double haut = 200000;
+		double milieu = 0;
+
+		for (int tour = 0; tour < 40; tour++) {
+			milieu = (bas + haut) / 2;
+			CpxImg F = FFT(I);
+			int gardes = compression_seuil(F, milieu);
+			if (gardes > cible) {
+				bas = milieu;
+			} else {
+				haut = milieu;
+			}
+		}
+
+		return haut;
+	}
+
+
 	
 	public static void main(String[] args) {
 		
@@ -140,8 +161,8 @@ public class FFT_2D {
 			CpxImg I = new CpxImg(BP);
 			CpxImg TFD_I = FFT(I);
 
-			int comprSeuil = compression_seuil(TFD_I, 30);
-			System.out.println(comprSeuil);
+			// int comprSeuil = compression_seuil(TFD_I, 30);
+			// System.out.println(comprSeuil);
 			
 
 			// for (int k=4; k <= 128; k*=2 ) {
@@ -173,7 +194,43 @@ public class FFT_2D {
 			// }
 			// System.out.println("Erreur maximale de reconstruction : " + erreurMax);
 			
+			// Compare methode sur barbara et tigre
+			BytePixmap BP_t = new BytePixmap("AC_tp2_part2_donnees/tigre_512.pgm");
+			BytePixmap BP_b = new BytePixmap("AC_tp2_part2_donnees/barbara_512.pgm");
+			CpxImg T = new CpxImg(BP_t);
+			CpxImg B = new CpxImg(BP_b);
+			CpxImg TFD_T = FFT(T);
+			CpxImg TFD_B = FFT(B);
+
+			compression(TFD_T, 81);
+			compression(TFD_B, 81);
+			CpxImg TFD_inverse_T = FFT_inverse(TFD_T);
+			CpxImg TFD_inverse_B = FFT_inverse(TFD_B);
+			BP_t = TFD_inverse_T.convert_to_BytePixmap();
+			BP_b = TFD_inverse_B.convert_to_BytePixmap();
+			BP_t.write("resultats/ex7_comprTigre.pgm");
+			BP_b.write("resultats/ex7_comprBarbara.pgm");
+
+
+			double seuil_T = trouverSeuil(T, 4 * 81 * 81);
+			double seuil_B = trouverSeuil(B, 4 * 81 * 81);	
+			CpxImg TFD_T2 = FFT(T);
+			CpxImg TFD_B2 = FFT(B);		
+			int gardes_t = compression_seuil(TFD_T2, seuil_T);
+			int gardes_b = compression_seuil(TFD_B2, seuil_B);
+			System.out.println(gardes_t);
+			System.out.println(gardes_b);
+			CpxImg TFD_inverse_T2 = FFT_inverse(TFD_T2);
+			CpxImg TFD_inverse_B2 = FFT_inverse(TFD_B2);
+			BP_t = TFD_inverse_T2.convert_to_BytePixmap();
+			BP_b = TFD_inverse_B2.convert_to_BytePixmap();
+			BP_t.write("resultats/ex7_comprSeuilTigre.pgm");
+			BP_b.write("resultats/ex7_comprSeuilBarbara.pgm");
+
+
+
 			// écriture
+
 			// BP = TFD_I.convert_to_BytePixmap();
 			// BP = TFD_trans_I.convert_to_BytePixmap();
 			// BP = TFD_inverse_I.convert_to_BytePixmap();
