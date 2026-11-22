@@ -7,3 +7,4 @@ AC_tp2_part2_donnees
 *.log
 *.aux
 *.out
+*.md

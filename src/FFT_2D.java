@@ -55,18 +55,60 @@ public class FFT_2D {
 		return 0;
 	}
 
+	public static CpxImg transformeCpxImg(CpxImg T) {
+		double N = T.taille();
+		double MaxPic = 0.0;
+		double[][] log_L = new double[(int) N] [(int) N];
+		double[][] F_log_L = new double[(int) N] [(int) N];
+		CpxImg res = new CpxImg((int) N);
+
+		for (int k = 0; k < N; k++) {
+			for (int l = 0; l < N; l++) {
+				double re = T.get_p_reel(k, l);
+				double im = T.get_p_imag(k, l);
+				double mod = Math.sqrt(re*re + im*im);
+				double log = Math.log(1 + mod);
+				log_L[k][l] = log;
+				if (log > MaxPic) {
+					MaxPic = log;
+				}
+			}
+		}
+
+		for (int k = 0; k < N; k++) {
+			for (int l = 0; l < N; l++) {
+				F_log_L[k][l] = (log_L[k][l] * 255)/MaxPic;
+				res.set_p_reel(k, l, F_log_L[k][l]);
+			}
+		}
+		return res;
+	}
+
 	
 	public static void main(String[] args) {
 		
 		try {			
 			//PLACEZ ICI VOS TESTS en 2D
 			//Exemple, lecture
-			BytePixmap BP = new BytePixmap("nomfichier.pgm");
+			BytePixmap BP = new BytePixmap("AC_tp2_part2_donnees/mire1.pgm");
 			CpxImg I = new CpxImg(BP);
+			CpxImg TFD_I = FFT(I);
+			CpxImg TFD_trans_I = transformeCpxImg(TFD_I);
+
+			double erreurMax = 0.0;
+			for (int k = 0; k < I.taille(); k++) {
+				for (int l = 0; l < I.taille(); l++) {
+					double diff = Math.abs(I.get_p_reel(k, l) - TFD_trans_I.get_p_reel(k, l));
+					if (diff > erreurMax) {
+						erreurMax = diff;
+					}
+				}
+			}
+			System.out.println("Erreur maximale de reconstruction : " + erreurMax);
 			
 			//Exemple, écriture
-			BP = I.convert_to_BytePixmap();
-			BP.write("nomfichier2.pgm");
+			BP = TFD_trans_I.convert_to_BytePixmap();
+			BP.write("resultats/res_mire1.pgm");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
