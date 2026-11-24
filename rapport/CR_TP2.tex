@@ -123,7 +123,7 @@ ajoute seulement des boucles en $\Theta(n)$, elle est aussi en $\Theta(n \log n)
 \subsection{Tests}
 
 Sur l'exemple du TD, $a = (1, 2, 3, 4)$, on attendait $[\,10,\ -2-2i,\ -2,\ -2+2i\,]$
-et c'est ce que donne notre FFT. L'inverse appliquée à ce résultat redonne bien
+et notre FFT donne exactement ce résultat. L'inverse appliquée à ce résultat redonne bien
 $[\,1,\ 2,\ 3,\ 4\,]$.
 
 % =====================================================================
@@ -399,7 +399,7 @@ Toutes nos prévisions sont bonnes :
 
 On a fait la TFD puis la TFD inverse du tigre et on retrouve la même image. L'écart
 maximal entre les pixels est de $1{,}1\cdot10^{-13}$, ce sont juste des erreurs
-d'arrondi. Ça montre aussi que notre FFT 1D marche, puisque la TFD 2D l'utilise.
+d'arrondi. Notre FFT 1D est donc validée, puisque la TFD 2D l'utilise.
 
 Au premier essai, on s'était trompé et on avait appliqué deux fois la TFD au lieu de
 la TFD puis l'inverse : on obtenait le tigre à l'envers, avec les quatre coins de
@@ -552,7 +552,7 @@ avec l'original, contraste étiré (gris moyen = 0).}
 \end{figure}
 
 \begin{itemize}
-  \item \textbf{Centre.} Comme prévu, on enlève la moyenne de l'image (l'écart de
+  \item \textbf{Centre.} On enlève la moyenne de l'image (l'écart de
         84,4 est la moyenne du tigre). Comme on enregistre le module, les zones
         proches de la moyenne, comme l'herbe, deviennent noires.
   \item \textbf{Voisin du centre.} L'écart est de 20 niveaux de gris, plus que ce
@@ -690,12 +690,11 @@ original & carré & seuil
 
 Le seuil donne une erreur environ 2 fois plus petite sur les deux images. Sur les
 images, le carré rend tout flou et efface les rayures de barbara, alors que le seuil
-les garde. C'est logique : le seuil garde les plus gros coefficients, où qu'ils
+les garde. Le seuil garde les plus gros coefficients, où qu'ils
 soient, alors que le carré enlève tout ce qui est loin du centre, même les gros
-coefficients des rayures. C'est pour ça que la différence est plus grande sur
-barbara.
+coefficients des rayures. La différence est plus grande sur barbara.
 
-Par contre, avec le seuil, il faudrait aussi enregistrer la position de chaque
+Avec le seuil, il faudrait aussi enregistrer la position de chaque
 coefficient gardé, alors qu'avec le carré il suffit de connaître $k$.
 
 % =====================================================================
