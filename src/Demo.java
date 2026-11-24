@@ -133,6 +133,7 @@ public class Demo {
 
 			System.out.println(nom + " : carré " + cible + " coefficients, MSE = " + FFT_2D.mse(I, Rc));
 			System.out.println(nom + " : seuil " + seuil + ", " + gardes + " coefficients, MSE = " + FFT_2D.mse(I, Rs));
+			System.out.println();
 			enregistrer(Rc, "demo_ex7_" + nom + "_carre");
 			enregistrer(Rs, "demo_ex7_" + nom + "_seuil");
 		}
@@ -161,6 +162,8 @@ public class Demo {
 	}
 
 	static void titre(String t) {
+		System.out.println();
 		System.out.println(t);
+		System.out.println();
 	}
 }

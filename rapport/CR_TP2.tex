@@ -62,7 +62,7 @@ Algorithmique et Complexité, ESIR 2 IOT
 \begin{minipage}[t]{0.42\textwidth}
   \centering
   {\color{orangeesir}\bfseries PROFESSEUR}\\[0.3cm]
-  \fbox{\parbox[c][2cm][c]{0.9\linewidth}{\centering M. Pierre MAUREL}}
+  \fbox{\parbox[c][2cm][c]{0.9\linewidth}{\centering M. Guillaume Le GULUDEC}}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.42\textwidth}
@@ -91,57 +91,50 @@ Algorithmique et Complexité, ESIR 2 IOT
 \section{Objectifs du TP}
 % =====================================================================
 
-Le TP a deux parties. Dans la première, on programme une FFT récursive et son
-inverse, on s'en sert pour multiplier des polynômes et on compare les temps de
-calcul avec la multiplication par les coefficients, pour retrouver
-$\Theta(n \log n)$ et $\Theta(n^2)$. Dans la deuxième, on utilise cette FFT pour
-analyser des signaux : en 1D d'abord, puis sur des images avec la TFD 2D, et on
-l'applique à la compression d'images avec deux méthodes, le carré de basses
-fréquences et le seuillage. Pour chaque expérience de la deuxième partie, on a écrit
-ce qu'on s'attendait à obtenir avant de lancer le calcul.
+Dans la première partie, il fallait programmer la FFT récursive et son inverse, s'en
+servir pour multiplier des polynômes, et comparer le temps de calcul avec la
+multiplication classique par les coefficients. Dans la deuxième partie, on a utilisé
+la FFT pour regarder le spectre de signaux 1D puis d'images, et pour compresser des
+images de deux façons : en gardant un carré de basses fréquences ou en gardant les
+plus gros coefficients (seuillage). Avant chaque expérience de la deuxième partie,
+on a noté ce qu'on pensait obtenir.
 
-\part{FFT et multiplication de polynômes}
+\part*{Partie 1 : FFT et multiplication de polynômes}
+\addcontentsline{toc}{part}{Partie 1 : FFT et multiplication de polynômes}
 
+% =====================================================================
 \section{FFT récursive et TFD inverse}
 % =====================================================================
 
 \subsection{Ce qu'on a fait}
 
-La fonction de combinaison applique les formules de l'énoncé : à partir des TFD des
-coefficients pairs et impairs (taille $n/2$), elle calcule les $n$ valeurs
-$A(\omega_n^k)$ et $A(\omega_n^{k+n/2})$, avec le même produit
-$\omega_n^k A_{\text{impair}}(\omega_{n/2}^k)$ pour les deux. La FFT sépare le vecteur
-en indices pairs et impairs, s'appelle sur chaque moitié et combine. On s'arrête à
-$n = 1$, où la TFD est le vecteur lui-même ; $n$ doit donc être une puissance de 2.
-Pour l'inverse, on a utilisé la formule de l'énoncé : conjuguer, appliquer la FFT,
-conjuguer et diviser par $n$.
+On a écrit la fonction de combinaison avec les formules de l'énoncé, puis la FFT
+récursive : on sépare les coefficients pairs et impairs, on calcule la FFT de chaque
+moitié, puis on combine. On s'arrête quand le vecteur n'a plus qu'un élément, donc
+$n$ doit être une puissance de 2. Pour l'inverse, on a utilisé la formule de
+l'énoncé (conjuguer, FFT, conjuguer, diviser par $n$).
 
 \subsection{Complexité}
 
-Chaque appel fait deux appels sur $n/2$ et une combinaison en $\Theta(n)$ :
-$T(n) = 2\,T(n/2) + \Theta(n)$, donc $T(n) = \Theta(n \log n)$ ($\log_2 n$ niveaux
-qui coûtent chacun $\Theta(n)$). L'inverse ajoute deux conjugaisons et une division
-en $\Theta(n)$, elle reste en $\Theta(n \log n)$. Notre version crée deux tableaux et
-calcule un cosinus et un sinus à chaque appel : ça ne change pas la complexité, mais
-ça augmente la constante, ce qu'on retrouve dans les mesures.
+Chaque appel fait deux appels sur une moitié et une combinaison en $\Theta(n)$, donc
+$T(n) = 2\,T(n/2) + \Theta(n)$, ce qui donne $T(n) = \Theta(n \log n)$. L'inverse
+ajoute seulement des boucles en $\Theta(n)$, elle est aussi en $\Theta(n \log n)$.
 
 \subsection{Tests}
 
-Sur l'exemple du TD, $a = (1, 2, 3, 4)$, on attendait
-$A(1) = 10$, $A(i) = -2 - 2i$, $A(-1) = -2$, $A(-i) = -2 + 2i$. Notre FFT renvoie
-exactement $[\,10,\ -2-2i,\ -2,\ -2+2i\,]$, et l'inverse appliquée à ce résultat
-redonne $[\,1,\ 2,\ 3,\ 4\,]$.
+Sur l'exemple du TD, $a = (1, 2, 3, 4)$, on attendait $[\,10,\ -2-2i,\ -2,\ -2+2i\,]$
+et c'est ce que donne notre FFT. L'inverse appliquée à ce résultat redonne bien
+$[\,1,\ 2,\ 3,\ 4\,]$.
 
 % =====================================================================
 \section{Multiplication de polynômes}
 % =====================================================================
 
-On a suivi la méthode du TD : FFT de $A$ et de $B$, produit terme à terme, FFT
-inverse, soit $\Theta(n \log n)$ au total. Le produit est de degré $2n-2$ : il faut
-au moins $2n-1$ points, donc on complète les deux vecteurs avec des zéros jusqu'à la
-taille $2n$ (qui reste une puissance de 2). On a testé les deux exemples de l'énoncé
-et $A_3 \times B_3$ avec $A_3 = 1 + 2X + 3X^2 + 4X^3$ et $B_3 = -3 + 2X - 5X^2$, dont
-le produit attendu est $-3 - 4X - 10X^2 - 16X^3 - 7X^4 - 20X^5$.
+On a suivi la méthode du TD : FFT des deux polynômes, produit terme à terme, puis FFT
+inverse. Le produit a $2n-1$ coefficients, donc on complète les deux vecteurs avec des
+zéros jusqu'à la taille $2n$ avant de faire la FFT. On a testé les exemples de
+l'énoncé et $A_3 \times B_3$ avec $A_3 = 1 + 2X + 3X^2 + 4X^3$ et
+$B_3 = -3 + 2X - 5X^2$ (produit attendu : $-3 - 4X - 10X^2 - 16X^3 - 7X^4 - 20X^5$).
 
 \begin{table}[H]
 \centering
@@ -161,16 +154,10 @@ $A_3 \times B_3$ & voir ci-dessus &
 \end{tabular}
 \end{table}
 
-Les résultats sont justes, et la méthode par les coefficients donne la même chose
-pour $A_3 \times B_3$. Quelques remarques :
-\begin{itemize}
-  \item on obtient $2n$ valeurs pour $2n-1$ coefficients : la dernière vient du
-        doublement de taille et vaut toujours 0 ;
-  \item notre fonction suppose que les deux polynômes ont le même nombre de
-        coefficients, on a donc écrit $B_3 = (-3, 2, -5, 0)$ ;
-  \item les calculs sont faits en flottants, les coefficients sont justes à des
-        erreurs d'arrondi près, trop petites pour apparaître à l'affichage.
-\end{itemize}
+Les résultats sont bons, et la méthode par les coefficients donne la même chose pour
+le dernier produit. Il y a toujours un 0 en plus à la fin, qui vient du doublement de
+la taille. Notre fonction demande deux polynômes de même taille, c'est pour ça qu'on
+a écrit $B_3 = (-3, 2, -5, 0)$.
 
 % =====================================================================
 \section{Comparaison des temps de calcul}
@@ -178,19 +165,17 @@ pour $A_3 \times B_3$. Quelques remarques :
 
 \subsection{Démarche}
 
-On a mesuré le temps de multiplication de deux polynômes aléatoires avec les deux
-méthodes, pour $n = 2^6$ à $2^{15}$, en microsecondes. Avant la série, on fait
-20 multiplications non mesurées pour que la machine virtuelle Java ait déjà compilé
-le code, et pour chaque taille on garde le minimum de 5 exécutions.
+On a mesuré le temps des deux multiplications pour $n = 2^6$ à $2^{15}$, avec des
+polynômes aléatoires. Avant les mesures, on fait 20 multiplications pour « chauffer »
+Java, et pour chaque taille on garde le meilleur temps sur 5 essais.
 
-Les modèles viennent de la complexité théorique :
+D'après la complexité, on prend comme modèles
 \[
   T_{\text{coeff}}(n) = a\,n^2, \qquad T_{\text{FFT}}(n) = b\,n \ln n .
 \]
-Pour estimer $a$ et $b$ avec toutes les mesures et pas un seul point, on a calculé
-$T(n)/n^2$ et $T(n)/(n \ln n)$ pour chaque taille. On a aussi calculé de combien le
-temps est multiplié quand $n$ double : on attend 4 pour $n^2$ et
-$2 \ln n / \ln(n/2)$, un peu plus de 2, pour $n \ln n$.
+Pour trouver $a$ et $b$, on a calculé $T(n)/n^2$ et $T(n)/(n \ln n)$ pour toutes les
+tailles, et regardé de combien le temps est multiplié quand $n$ double (4 attendu
+pour $n^2$, un peu plus de 2 pour $n \ln n$).
 
 \subsection{Méthode par les coefficients}
 
@@ -216,16 +201,13 @@ $n$ & $T(n)$ (\textmu s) & $T(n)/n^2$ ($10^{-3}$\,\textmu s) & $T(n)/T(n/2)$ \\
 \end{tabular}
 \end{table}
 
-Le temps est multiplié par 3,5 à 4,1 quand $n$ double (3,95 en moyenne) : c'est bien
-une croissance en $n^2$. $T(n)/n^2$ reste entre $4{,}1$ et $4{,}6 \cdot 10^{-3}$\us
-jusqu'à $n = 8\,192$, puis descend à $3{,}6\cdot 10^{-3}$\us. Avec
-$a = 0{,}0044$\us (valeur des petites tailles), le modèle passait 20\,\% au-dessus des
-deux derniers points, on a donc pris
+Quand $n$ double, le temps est multiplié par environ 4 (entre 3,5 et 4,1), donc on a
+bien du $n^2$. Le rapport $T(n)/n^2$ reste autour de $4{,}4 \cdot 10^{-3}$\us puis
+descend à $3{,}6 \cdot 10^{-3}$\us pour les deux dernières tailles. On a pris
 \[
   T_{\text{coeff}}(n) \approx 0{,}004 \cdot n^2 \ \text{\textmu s},
 \]
-qui reste à moins de 13\,\% de toutes les mesures (figure~\ref{fig:coeff}). On
-revient sur la baisse du rapport dans la section~\ref{sec:ecarts}.
+qui passe à moins de 13\,\% de tous les points (figure~\ref{fig:coeff}).
 
 \begin{figure}[H]
 \centering
@@ -274,16 +256,15 @@ $n$ & $T(n)$ (\textmu s) & $T(n)/(n \ln n)$ (\textmu s) & $T(n)/T(n/2)$ & attend
 \end{tabular}
 \end{table}
 
-Jusqu'à $n = 4\,096$, les mesures sont irrégulières : le rapport tourne autour de 0,4
-avec un saut à 0,58, et le temps est multiplié par 3,63, puis 1,57, puis 1,28. Un
-facteur 1,28 quand $n$ double est impossible pour un algorithme en $n \ln n$ si le code
-ne change pas, donc ces mesures sont faussées (section~\ref{sec:ecarts}). À partir de
-$n = 8\,192$, le rapport est stable (0,184 ; 0,179 ; 0,179) et les facteurs sont
-proches de ceux attendus. On a pris $b$ dans cette zone :
+Pour les petites tailles, les temps sont irréguliers : par exemple, de 2\,048 à
+4\,096, le temps n'est multiplié que par 1,28, ce qui n'est pas possible pour du
+$n \ln n$. À partir de $n = 8\,192$, le rapport est stable (environ 0,18) et le temps
+est multiplié par un peu plus de 2 à chaque fois, comme prévu. On a donc pris $b$ sur
+ces tailles :
 \[
-  T_{\text{FFT}}(n) \approx 0{,}18 \cdot n \ln n \ \text{\textmu s},
+  T_{\text{FFT}}(n) \approx 0{,}18 \cdot n \ln n \ \text{\textmu s}
 \]
-à moins de 3\,\% des mesures pour $n \geq 8\,192$ (figure~\ref{fig:fft}).
+(figure~\ref{fig:fft}).
 
 \begin{figure}[H]
 \centering
@@ -311,21 +292,12 @@ proches de ceux attendus. On a pris $b$ dans cette zone :
 \subsection{Points qui s'écartent des modèles}
 \label{sec:ecarts}
 
-\begin{itemize}
-  \item \textbf{FFT, petites tailles.} Les mesures jusqu'à $n = 4\,096$ sont au-dessus
-        du modèle et irrégulières. On pense que c'est la compilation à la volée de
-        Java : notre échauffement de 20 multiplications ne suffit sans doute pas pour
-        les parties du code qui ne tournent qu'une fois par multiplication
-        (conjugaison, produit terme à terme, recopie avec les zéros), et elles sont
-        encore lentes au début de la série. On ne s'appuie donc que sur les grandes
-        tailles pour estimer $b$.
-  \item \textbf{Coefficients, changement de niveau.} $T(n)/n^2$ passe d'environ
-        $4{,}4$ à $3{,}6 \cdot 10^{-3}$\us entre $n = 8\,192$ et $n = 16\,384$, alors
-        que l'algorithme est le même. Une explication possible
-        est un changement de fréquence du processeur (ordinateur portable) pendant la
-        série. L'écart reste petit devant la croissance du temps, multiplié par plus de
-        200\,000 entre $n = 64$ et $n = 32\,768$.
-\end{itemize}
+Pour la FFT aux petites tailles, on pense que Java n'avait pas encore fini
+d'optimiser tout le code au début des mesures, malgré l'échauffement. Pour les
+coefficients, le rapport $T(n)/n^2$ baisse d'un coup alors que l'algorithme ne
+change pas ; une explication possible est que le processeur de l'ordinateur portable
+a changé de fréquence pendant les mesures. Dans les deux cas, ça ne remet pas en
+cause la forme des courbes.
 
 \subsection{Comparaison des deux méthodes}
 
@@ -355,41 +327,34 @@ droite de pente 2, $n \ln n$ une pente un peu supérieure à 1).}
 \label{fig:comparaison}
 \end{figure}
 
-Pour les petites tailles, la FFT est plus lente : 107\us contre 17\us à $n = 64$. Les
-courbes se croisent entre $n = 512$ (1\,180\us contre 1\,861\us) et $n = 1\,024$
-(4\,822\us contre 2\,926\us). C'est la constante : $b/a \approx 45$, à cause de la
-récursion, des tableaux créés et des cosinus et sinus à chaque appel.
-
-Avec les modèles, le croisement est là où $a\,n^2 = b\,n \ln n$, soit
-$n / \ln n = b/a \approx 45$, ce qui donne $n \approx 250$. Nos mesures donnent un
-croisement plus tard, entre 512 et 1\,024, parce que les temps de la FFT aux petites
-tailles sont au-dessus du modèle (section~\ref{sec:ecarts}).
-
-Ensuite l'écart grandit comme $n / \ln n$ : à $n = 32\,768$, la FFT est 64 fois plus
-rapide (61\,ms contre 3,9\,s).
+Pour les petites tailles, la FFT est plus lente (107\us contre 17\us à $n = 64$). Les
+courbes se croisent entre $n = 512$ et $n = 1\,024$. C'est parce que $b$ est environ
+45 fois plus grand que $a$ : notre FFT est récursive, crée des tableaux et calcule
+des cosinus et sinus à chaque appel. Pour les grandes tailles, la FFT gagne
+largement : à $n = 32\,768$, elle est 64 fois plus rapide (61\,ms contre 3,9\,s).
 
 \subsection{Extrapolation}
 
-En prolongeant nos deux modèles jusqu'à $n = 2^{20}$ (environ un million de
-coefficients) :
+Avec nos modèles, pour $n = 2^{20}$ (environ un million de coefficients) :
 \[
   T_{\text{coeff}}(2^{20}) \approx 0{,}004 \times (2^{20})^2\ \text{\textmu s} \approx 73\ \text{min},
   \qquad
   T_{\text{FFT}}(2^{20}) \approx 0{,}18 \times 2^{20} \times \ln(2^{20})\ \text{\textmu s} \approx 2{,}6\ \text{s}.
 \]
-La FFT serait environ 1\,700 fois plus rapide. Ce sont des extrapolations de nos
-modèles, pas des temps théoriques, et elles supposent
-que $a$ et $b$ ne changent pas jusqu'à 32 fois notre plus grande taille (par exemple, les données ne tiennent plus dans le
-cache du processeur) : seul l'ordre de grandeur compte.
+Ce sont des estimations à partir de nos modèles, en supposant que $a$ et $b$ restent
+les mêmes pour des tailles 32 fois plus grandes que nos mesures, donc c'est surtout
+l'ordre de grandeur qui compte.
 
-\part{Analyse fréquentielle et compression d'images}
+\part*{Partie 2 : Analyse fréquentielle et compression d'images}
+\addcontentsline{toc}{part}{Partie 2 : Analyse fréquentielle et compression d'images}
 
+% =====================================================================
 \section{TFD d'un signal 1D}
 % =====================================================================
 
-On a calculé la TFD des signaux de l'exercice 1 ($n = 16$). Les coefficients qui ne
-sont pas cités dans le tableau sont nuls ; on obtient en fait des valeurs de l'ordre
-de $10^{-15}$, qui sont des erreurs d'arrondi.
+On a calculé la TFD des signaux de l'exercice 1 avec $n = 16$. Dans le tableau, les
+coefficients non cités sont nuls (on obtient en fait des valeurs vers $10^{-15}$, ce
+sont des erreurs d'arrondi).
 
 \begin{table}[H]
 \centering
@@ -415,22 +380,15 @@ $4 + 2\sin(2\pi\, 2t/n) + \cos(2\pi\, 7t/n)$ &
 \end{tabular}
 \end{table}
 
-Toutes nos prévisions sont vérifiées. Ce qu'on en retient :
+Toutes nos prévisions sont bonnes :
 \begin{itemize}
-  \item \textbf{Constante.} $y_0$ est la somme des valeurs ($n \times$ moyenne). Les
-        autres coefficients sont nuls car $y_k = c \sum_j \omega_n^{kj}$ est une somme
-        de racines de l'unité.
-  \item \textbf{Cosinus.} Deux pics de $A\,n/2$, en $k$ et $n-k$ (décomposition donnée
-        dans l'énoncé). Pour $k = 0$ et $k = 8$, les deux indices sont les mêmes, donc
-        un seul pic de 16.
-  \item \textbf{$k > 8$.} On obtient exactement le spectre de $16-k$ : aux instants
-        entiers, $\cos(2\pi k t/n) = \cos(2\pi (n-k) t/n)$, ce sont les mêmes
-        échantillons. Avec 16 points, on ne peut pas voir de fréquence au-dessus de 8
-        (repliement, Shannon).
-  \item \textbf{Somme.} La TFD est linéaire, les deux spectres s'ajoutent (le
-        $\frac12$ donne des pics de 4).
-  \item \textbf{Sinus.} Les pics sont imaginaires et de signes opposés ($+16i$ en 2,
-        $-16i$ en 14), parce que $\sin\theta = (e^{i\theta} - e^{-i\theta})/2i$.
+  \item pour une constante, seul $y_0$ est non nul, et il vaut la somme des valeurs ;
+  \item un cosinus donne deux pics de 8, en $k$ et en $16-k$, sauf pour $k = 0$ et
+        $k = 8$ où les deux positions sont les mêmes, donc un seul pic de 16 ;
+  \item pour $k > 8$, on retrouve le spectre de $16-k$ : avec 16 points, on ne peut
+        pas distinguer ces deux cosinus ;
+  \item pour une somme, les spectres s'ajoutent, et le $\frac12$ donne des pics de 4 ;
+  \item le sinus donne des pics imaginaires ($+16i$ et $-16i$).
 \end{itemize}
 
 % =====================================================================
@@ -439,25 +397,22 @@ Toutes nos prévisions sont vérifiées. Ce qu'on en retient :
 
 \subsection{Vérification de la TFD 2D}
 
-On a appliqué la TFD puis la TFD inverse à l'image du tigre ($512 \times 512$). On
-retrouve la même image : l'écart maximal sur les pixels est de $1{,}1\cdot10^{-13}$ niveau de gris, donc
-seulement des erreurs d'arrondi. Ça valide aussi notre FFT 1D, que la TFD 2D utilise sur chaque ligne et
-chaque colonne ($2n$ FFT de taille $n$, donc un coût en $\Theta(n^2 \log n)$).
+On a fait la TFD puis la TFD inverse du tigre et on retrouve la même image. L'écart
+maximal entre les pixels est de $1{,}1\cdot10^{-13}$, ce sont juste des erreurs
+d'arrondi. Ça montre aussi que notre FFT 1D marche, puisque la TFD 2D l'utilise.
 
-Au premier essai, on avait appliqué deux fois la TFD au lieu de la TFD puis
-l'inverse. On obtenait le tigre retourné de $180^\circ$ avec les quatre quarts de
-l'image échangés : deux TFD de suite retournent l'image, et le recentrage, fait à
-chaque TFD, décale de $n/2$, ce qui échange les quarts.
+Au premier essai, on s'était trompé et on avait appliqué deux fois la TFD au lieu de
+la TFD puis l'inverse : on obtenait le tigre à l'envers, avec les quatre coins de
+l'image échangés.
 
 \subsection{Affichage d'un spectre}
 \label{sec:affichage}
 
-Le module de la TFD est énorme au centre (il vaut $n \times$ la moyenne de l'image)
-et très petit ailleurs. Comme l'enregistrement coupe à 255, on ne verrait que le
-centre. On a donc écrit une fonction qui affiche $\log(1 + |F|)$, ramené entre 0 et
-255 en multipliant par $255 / \max$. Le logarithme rapproche les grandes et les
-petites valeurs, et le $1+$ évite $\log 0$. Tous les spectres sont affichés comme ça
-(figure~\ref{fig:log}).
+Le coefficient au centre du spectre est très grand par rapport aux autres. Si on
+enregistre directement le module, presque tout est noir sauf le centre. On a donc
+écrit une fonction qui affiche $\log(1 + |F|)$, remis entre 0 et 255. Le logarithme
+réduit l'écart entre les grandes et les petites valeurs, et le « $1+$ » évite de
+calculer $\log 0$. Tous les spectres sont affichés comme ça (figure~\ref{fig:log}).
 
 \begin{figure}[H]
 \centering
@@ -468,11 +423,9 @@ petites valeurs, et le $1+$ évite $\log 0$. Tous les spectres sont affichés co
 
 \subsection{Spectres des mires, de l'empreinte et de barbara}
 
-On a fait nos prévisions avec la règle de l'énoncé : des rayures donnent deux points
-symétriques, dans la direction perpendiculaire aux rayures, et d'autant plus loin du
-centre que les rayures sont fines. On a mesuré la position des points en pixels à
-partir du centre ; pour une sinusoïde, elle donne le nombre de périodes sur la taille
-de l'image.
+Pour les prévisions, on a utilisé la règle de l'énoncé : des rayures donnent deux
+points symétriques par rapport au centre, perpendiculaires aux rayures, et d'autant
+plus loin du centre que les rayures sont serrées.
 
 \begin{table}[H]
 \centering
@@ -529,30 +482,21 @@ mire1 & mire2 & mire3
 
 Ce qu'on a observé :
 \begin{itemize}
-  \item \textbf{mire1, mire2.} 4 puis 8 périodes sur la largeur, donc des points à 4
-        puis 8 pixels du centre. Par contre, on n'avait pas prévu la ligne de petits
-        points sur l'axe horizontal, tous les 4 pixels (mire1) ou 8 pixels (mire2). On
-        pense qu'elle vient de l'arrondi des pixels à des entiers : la mire n'est pas
-        une sinusoïde exacte. Cette erreur est la même sur toutes les lignes de
-        l'image, donc elle ne peut donner des points que sur l'axe horizontal, et elle
-        se répète avec la période des rayures, donc tous les 4 (ou 8) pixels. Ces
-        coefficients sont minuscules, on ne les voit que grâce au logarithme.
-  \item \textbf{mire3.} Il y a deux paires de points, donc l'image est la somme de
-        deux ondes : des rayures horizontales (5 périodes sur la hauteur)
-        et des rayures obliques (point en $(20, -10)$, soit
-        $\sqrt{20^2 + 10^2} \approx 22$ périodes).
-  \item \textbf{Empreinte.} Les crêtes sont à peu près toutes espacées pareil mais
-        tournent dans toutes les directions : un point par direction, à la même
-        distance du centre, ce qui fait un anneau. Le fond gris vient des contours
-        noir/blanc très nets (hautes fréquences).
-  \item \textbf{Barbara.} Les taches loin du centre correspondent aux rayures du
-        foulard, du pantalon et de la nappe, qui n'ont pas la même orientation.
-  \item \textbf{Croix sur les axes.} On la voit pour l'empreinte, barbara et le tigre,
-        pas pour les mires. Notre explication : la TFD traite l'image comme si elle se
-        répétait, donc le bord droit touche le bord gauche ; sur une photo les deux
-        bords sont différents, ce qui fait comme un contour vertical (et pareil en
-        haut et en bas). Les mires ont un nombre entier de périodes, leurs bords se
-        raccordent.
+  \item \textbf{mire1 et mire2.} Les points sont à 4 puis 8 pixels du centre, ce qui
+        correspond au nombre de rayures sur la largeur. On voit aussi des petits
+        points alignés sur l'axe horizontal qu'on n'avait pas prévus. On pense que
+        c'est parce que les pixels sont arrondis à des entiers, donc la mire n'est pas
+        une sinusoïde parfaite.
+  \item \textbf{mire3.} Il y a deux paires de points, donc l'image mélange deux
+        sortes de rayures : des rayures horizontales et des rayures obliques.
+  \item \textbf{Empreinte.} On obtient un anneau, parce que les lignes de l'empreinte
+        sont à peu près toutes espacées pareil mais tournent dans toutes les
+        directions.
+  \item \textbf{Barbara.} Les taches loin du centre viennent des rayures du foulard,
+        du pantalon et de la nappe.
+  \item \textbf{Croix sur les axes.} On pense qu'elle vient des bords de
+        l'image : la TFD fait comme si l'image se répétait, et le bord gauche ne
+        ressemble pas au bord droit.
 \end{itemize}
 
 % =====================================================================
@@ -561,9 +505,8 @@ Ce qu'on a observé :
 
 \subsection{Annulation d'un seul coefficient}
 
-On a annulé un coefficient de la TFD du tigre puis calculé la TFD inverse, en
-repartant à chaque fois de la TFD complète. Pour chaque cas, on a mesuré l'écart
-maximal entre l'image obtenue et l'originale.
+On a mis à zéro un seul coefficient de la TFD du tigre, puis fait la TFD inverse, et
+regardé l'écart maximal avec l'image d'origine.
 
 \begin{table}[H]
 \centering
@@ -609,24 +552,21 @@ avec l'original, contraste étiré (gris moyen = 0).}
 \end{figure}
 
 \begin{itemize}
-  \item \textbf{Centre.} Comme prévu, on retire la moyenne : l'image vaut
-        $I - 84{,}4$, avec des valeurs négatives. Comme on enregistre le module, on
-        voit $|I - 84{,}4|$ : l'herbe, proche de la moyenne, devient noire, le ciel
-        sombre devient gris, les rayures noires deviennent claires.
+  \item \textbf{Centre.} Comme prévu, on enlève la moyenne de l'image (l'écart de
+        84,4 est la moyenne du tigre). Comme on enregistre le module, les zones
+        proches de la moyenne, comme l'herbe, deviennent noires.
   \item \textbf{Voisin du centre.} L'écart est de 20 niveaux de gris, plus que ce
-        qu'on pensait, mais on ne voit aucune différence : c'est un dégradé d'une seule
-        période sur toute la hauteur (figure~\ref{fig:ex4}b), trop lent pour l'\oe il.
-  \item \textbf{Haute fréquence.} 0,16 niveau de gris d'écart : invisible, comme
-        prévu.
+        qu'on pensait, mais on ne voit pas de différence : c'est un dégradé très
+        lent sur toute la hauteur (figure~\ref{fig:ex4}b).
+  \item \textbf{Haute fréquence.} L'écart est de 0,16 niveau de gris : rien ne se
+        voit.
 \end{itemize}
-Le centre donne la luminosité moyenne, les coefficients proches les grandes
-variations, ceux qui sont loin les détails fins, et ces derniers sont petits. C'est
-ce qui permet de compresser.
+Les coefficients loin du centre comptent très peu dans l'image, c'est ce qui permet
+de compresser.
 
 \subsection{Compression par sélection des basses fréquences}
 
-Dans notre fonction, les indices gardés vont de $n/2-k+1$ à $n/2+k$ ($2k$ valeurs) ;
-le carré n'est donc pas tout à fait symétrique, mais ça ne change rien de visible.
+On garde seulement le carré de côté $2k$ au centre du spectre.
 
 \begin{table}[H]
 \centering
@@ -690,28 +630,26 @@ $k$ & \textbf{Prévision} & \textbf{Observation} \\
 \end{tabular}
 \end{table}
 
-Nos prévisions sont vérifiées. Le flou vient des hautes fréquences supprimées. Les
-ondulations autour des contours (bien visibles à $k = 32$) sont le phénomène de
-Gibbs : un contour net a besoin de toutes les fréquences, et on les coupe d'un coup à
-$k$.
+Plus $k$ est petit, plus l'image est floue, car on enlève les détails (hautes
+fréquences). Autour des contours, on voit des petites ondulations, surtout à
+$k = 32$ : on pense que c'est le phénomène de Gibbs.
 
 \subsection{Compression par seuillage}
 
 On a testé notre fonction de seuillage sur le tigre avec un seuil de 30 : elle garde
-30\,808 coefficients sur 262\,144, soit 11,8\,\%. Avec un seuil assez petit, on
-garde donc déjà très peu de coefficients : la plupart sont petits. Ce test nous a
-aussi donné l'ordre de grandeur du seuil pour l'exercice 7.
+30\,808 coefficients sur 262\,144, soit 11,8\,\%. La plupart des coefficients sont
+donc petits. Ce test nous a aussi donné une idée du seuil à prendre pour l'exercice 7.
 
 \subsection{\texorpdfstring{Comparaison des deux méthodes à 10\,\%}{Comparaison des deux méthodes à 10 \%}}
 
-\paragraph{Ce qu'on a fait.} Pour le carré, on a pris $k = 81$, soit
-$(2 \times 81)^2 = 26\,244$ coefficients (10,01\,\%). Pour le seuil, il fallait
-trouver la valeur qui garde le même nombre de coefficients. Comme ce nombre diminue
-quand le seuil augmente, on l'a cherché par dichotomie entre 0 et 200\,000 (le plus
-grand coefficient ne peut pas dépasser $512 \times 255$), avec 40 itérations. À chaque
-itération, on repart de la TFD complète, parce que notre fonction de seuillage modifie
-le tableau. On a ensuite comparé les images, et calculé pour chaque méthode l'erreur
-quadratique moyenne entre l'image $I$ et l'image reconstruite $I'$ :
+Pour le carré, on a pris $k = 81$, ce qui garde $(2 \times 81)^2 = 26\,244$
+coefficients, soit 10\,\%. Pour le seuil, il fallait trouver la valeur qui garde le
+même nombre de coefficients. Comme le nombre de coefficients gardés diminue quand le
+seuil augmente, on l'a cherché par dichotomie entre 0 et 200\,000, en 40 tours. À
+chaque tour, on repart de la TFD complète, car le seuillage modifie le tableau.
+
+Pour comparer, on a regardé les images et calculé l'erreur quadratique moyenne entre
+l'image d'origine $I$ et l'image compressée $I'$ :
 \[
   \mathrm{MSE} = \frac{1}{n^2} \sum_{k,l} \bigl(I(k,l) - I'(k,l)\bigr)^2 .
 \]
@@ -750,47 +688,28 @@ original & carré & seuil
 \label{fig:ex7}
 \end{figure}
 
-\paragraph{Résultats.} Le seuil donne une MSE 1,8 fois plus faible pour le tigre et
-2,3 fois pour barbara. Sur les images, le carré rend tout flou et efface les rayures
-du pantalon et du foulard de barbara. Le seuil garde ces rayures, mais on voit un
-léger grain dans les zones lisses.
+Le seuil donne une erreur environ 2 fois plus petite sur les deux images. Sur les
+images, le carré rend tout flou et efface les rayures de barbara, alors que le seuil
+les garde. C'est logique : le seuil garde les plus gros coefficients, où qu'ils
+soient, alors que le carré enlève tout ce qui est loin du centre, même les gros
+coefficients des rayures. C'est pour ça que la différence est plus grande sur
+barbara.
 
-\paragraph{Pourquoi le seuil est meilleur.} Avec le $1/n$, la TFD 2D conserve
-l'énergie (Parseval), donc l'erreur vaut
-\[
-  \mathrm{MSE} = \frac{1}{n^2} \sum_{\text{coefficients annulés}} |F(u,v)|^2 .
-\]
-Pour un nombre de coefficients gardés fixé, cette somme est la plus petite
-quand on annule les plus petits modules, et c'est exactement ce que fait le seuil.
-
-L'écart est plus grand pour barbara : ses rayures sont des hautes fréquences avec un
-grand module (les taches loin du centre de son spectre). Le carré les supprime, le
-seuil les garde.
-
-\paragraph{Limite.} Avec le carré, on sait où sont les coefficients gardés (il suffit
-de $k$). Avec le seuil, il faudrait aussi stocker la position de chacun, donc à nombre
-de coefficients égal, le fichier serait plus gros. La comparaison à 10\,\% des
-coefficients avantage donc un peu le seuil.
+Par contre, avec le seuil, il faudrait aussi enregistrer la position de chaque
+coefficient gardé, alors qu'avec le carré il suffit de connaître $k$.
 
 % =====================================================================
 \section{Conclusion}
 % =====================================================================
 
-Notre FFT et son inverse donnent les bons résultats, et la multiplication par FFT
-donne les mêmes coefficients que la méthode classique. Les mesures confirment les
-complexités : quand $n$ double, le temps est multiplié par environ 4 pour la méthode
-par les coefficients et par un peu plus de 2 pour la FFT. À cause de sa constante
-45 fois plus grande, la FFT n'est plus rapide qu'à partir de quelques centaines de
-coefficients ; après, le gain grandit comme $n / \ln n$.
+Notre FFT, son inverse et la multiplication de polynômes donnent les bons résultats.
+Les mesures confirment que la multiplication par FFT est en $n \log n$ et celle par
+les coefficients en $n^2$ ; la FFT n'est plus rapide qu'à partir de quelques
+centaines de coefficients, mais ensuite elle gagne de plus en plus.
 
-En 1D comme en 2D, nos prévisions sur les spectres ont été vérifiées ; les détails
-qu'on n'avait pas prévus (petits points des mires, deux ondes dans mire3) ont une
-explication. Les coefficients loin du centre sont petits et ne changent presque rien
-à l'image, ce qui permet de compresser. Le carré de basses fréquences donne une image
-reconnaissable avec moins de 1\,\% des coefficients, mais floue. À 10\,\% des
-coefficients, le seuillage donne une erreur 1,8 à 2,3 fois plus faible, ce qu'on
-explique avec Parseval, surtout sur une image avec beaucoup de textures comme
-barbara. Son inconvénient est qu'il faut stocker la position des coefficients
-gardés.
+Pour les images, nos prévisions sur les spectres étaient bonnes. On a vu que les
+coefficients loin du centre comptent peu, ce qui permet de compresser. Le carré de
+basses fréquences donne une image floue, alors qu'à nombre de coefficients égal, le
+seuillage garde mieux les détails et fait environ deux fois moins d'erreur.
 
 \end{document}
