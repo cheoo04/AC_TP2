@@ -129,7 +129,7 @@ public class FFT_1D {
 	//effectue la multiplication de polynômes représentés par coefficients
 	// p1, p2 les coefficients des deux polynômes P1 et P2
 	// renvoie les coefficients du polynôme P1*P2
-	private static double [] multiplication_polynome_viaCoeff(double[] p1, double[] p2){
+	public static double [] multiplication_polynome_viaCoeff(double[] p1, double[] p2){
 		
 		int n = p1.length + p2.length - 1;
 		double a,b;
